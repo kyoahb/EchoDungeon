@@ -102,6 +102,8 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>C:\Users\bresk\source\repos\EchoDungeon\EchoDungeon\Libraries\imgui;C:\Users\bresk\source\repos\EchoDungeon\EchoDungeon\Libraries;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -123,7 +125,80 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="EchoDungeon.cpp" />
+    <ClCompile Include="Imports\common.cpp" />
+    <ClCompile Include="Libraries\imgui\imgui.cpp" />
+    <ClCompile Include="Libraries\imgui\imgui_demo.cpp" />
+    <ClCompile Include="Libraries\imgui\imgui_draw.cpp" />
+    <ClCompile Include="Libraries\imgui\imgui_impl_glfw.cpp" />
+    <ClCompile Include="Libraries\imgui\imgui_impl_opengl3.cpp" />
+    <ClCompile Include="Libraries\imgui\imgui_impl_win32.cpp" />
+    <ClCompile Include="Libraries\imgui\imgui_tables.cpp" />
+    <ClCompile Include="Libraries\imgui\imgui_widgets.cpp" />
+    <ClCompile Include="Libraries\raylib-imgui-compat\rlImGui.cpp" />
+    <ClCompile Include="main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Imports\common.h" />
+    <ClInclude Include="Libraries\enet\enet.h" />
+    <ClInclude Include="Libraries\imgui\imconfig.h" />
+    <ClInclude Include="Libraries\imgui\imgui.h" />
+    <ClInclude Include="Libraries\imgui\imgui_impl_glfw.h" />
+    <ClInclude Include="Libraries\imgui\imgui_impl_opengl3.h" />
+    <ClInclude Include="Libraries\imgui\imgui_impl_opengl3_loader.h" />
+    <ClInclude Include="Libraries\imgui\imgui_impl_win32.h" />
+    <ClInclude Include="Libraries\imgui\imgui_internal.h" />
+    <ClInclude Include="Libraries\imgui\imstb_rectpack.h" />
+    <ClInclude Include="Libraries\imgui\imstb_textedit.h" />
+    <ClInclude Include="Libraries\imgui\imstb_truetype.h" />
+    <ClInclude Include="Libraries\raylib-cpp\AudioDevice.hpp" />
+    <ClInclude Include="Libraries\raylib-cpp\AudioStream.hpp" />
+    <ClInclude Include="Libraries\raylib-cpp\AutomationEventList.hpp" />
+    <ClInclude Include="Libraries\raylib-cpp\BoundingBox.hpp" />
+    <ClInclude Include="Libraries\raylib-cpp\Camera2D.hpp" />
+    <ClInclude Include="Libraries\raylib-cpp\Camera3D.hpp" />
+    <ClInclude Include="Libraries\raylib-cpp\Color.hpp" />
+    <ClInclude Include="Libraries\raylib-cpp\FileData.hpp" />
+    <ClInclude Include="Libraries\raylib-cpp\FileText.hpp" />
+    <ClInclude Include="Libraries\raylib-cpp\Font.hpp" />
+    <ClInclude Include="Libraries\raylib-cpp\Functions.hpp" />
+    <ClInclude Include="Libraries\raylib-cpp\Gamepad.hpp" />
+    <ClInclude Include="Libraries\raylib-cpp\Image.hpp" />
+    <ClInclude Include="Libraries\raylib-cpp\Keyboard.hpp" />
+    <ClInclude Include="Libraries\raylib-cpp\Material.hpp" />
+    <ClInclude Include="Libraries\raylib-cpp\Matrix.hpp" />
+    <ClInclude Include="Libraries\raylib-cpp\Mesh.hpp" />
+    <ClInclude Include="Libraries\raylib-cpp\MeshUnmanaged.hpp" />
+    <ClInclude Include="Libraries\raylib-cpp\Model.hpp" />
+    <ClInclude Include="Libraries\raylib-cpp\ModelAnimation.hpp" />
+    <ClInclude Include="Libraries\raylib-cpp\Mouse.hpp" />
+    <ClInclude Include="Libraries\raylib-cpp\Music.hpp" />
+    <ClInclude Include="Libraries\raylib-cpp\Ray.hpp" />
+    <ClInclude Include="Libraries\raylib-cpp\RayCollision.hpp" />
+    <ClInclude Include="Libraries\raylib-cpp\raylib-cpp-utils.hpp" />
+    <ClInclude Include="Libraries\raylib-cpp\raylib-cpp.hpp" />
+    <ClInclude Include="Libraries\raylib-cpp\raylib.hpp" />
+    <ClInclude Include="Libraries\raylib-cpp\RaylibException.hpp" />
+    <ClInclude Include="Libraries\raylib-cpp\raymath.hpp" />
+    <ClInclude Include="Libraries\raylib-cpp\Rectangle.hpp" />
+    <ClInclude Include="Libraries\raylib-cpp\RenderTexture.hpp" />
+    <ClInclude Include="Libraries\raylib-cpp\Shader.hpp" />
+    <ClInclude Include="Libraries\raylib-cpp\ShaderUnmanaged.hpp" />
+    <ClInclude Include="Libraries\raylib-cpp\Sound.hpp" />
+    <ClInclude Include="Libraries\raylib-cpp\Text.hpp" />
+    <ClInclude Include="Libraries\raylib-cpp\Texture.hpp" />
+    <ClInclude Include="Libraries\raylib-cpp\TextureUnmanaged.hpp" />
+    <ClInclude Include="Libraries\raylib-cpp\Touch.hpp" />
+    <ClInclude Include="Libraries\raylib-cpp\Vector2.hpp" />
+    <ClInclude Include="Libraries\raylib-cpp\Vector3.hpp" />
+    <ClInclude Include="Libraries\raylib-cpp\Vector4.hpp" />
+    <ClInclude Include="Libraries\raylib-cpp\VrStereoConfig.hpp" />
+    <ClInclude Include="Libraries\raylib-cpp\Wave.hpp" />
+    <ClInclude Include="Libraries\raylib-cpp\Window.hpp" />
+    <ClInclude Include="Libraries\raylib-imgui-compat\extras\FA6FreeSolidFontData.h" />
+    <ClInclude Include="Libraries\raylib-imgui-compat\extras\IconsFontAwesome6.h" />
+    <ClInclude Include="Libraries\raylib-imgui-compat\imgui_impl_raylib.h" />
+    <ClInclude Include="Libraries\raylib-imgui-compat\rlImGui.h" />
+    <ClInclude Include="Libraries\raylib-imgui-compat\rlImGuiColors.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
