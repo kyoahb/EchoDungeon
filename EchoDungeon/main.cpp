@@ -3,5 +3,6 @@
 
 int main()
 {
-    std::cout << "Hello World!\n";
+    Logger::init();
+    CRITICAL("john");
 }

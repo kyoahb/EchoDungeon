@@ -17,4 +17,4 @@ Common imports that usually clash.
 #define NOGDI             // All GDI defines and routines
 
 #include <enet/enet.h> // Include ENET
-#include <spdlog/spdlog.h> // Include spdlog
+#include "Utils/Logger/Logger.h"

@@ -102,8 +102,9 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\bresk\source\repos\EchoDungeon\EchoDungeon\Libraries\imgui;C:\Users\bresk\source\repos\EchoDungeon\EchoDungeon\Libraries;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\bresk\source\repos\kyoahb\EchoDungeon\EchoDungeon\Libraries\imgui;C:\Users\bresk\source\repos\kyoahb\EchoDungeon\EchoDungeon\Libraries;C:\Users\bresk\source\repos\kyoahb\EchoDungeon\EchoDungeon;C:\Users\bresk\source\repos\kyoahb\EchoDungeon\EchoDungeon\Imports;C:\Users\bresk\source\repos\EchoDungeon\EchoDungeon\Libraries\imgui;C:\Users\bresk\source\repos\EchoDungeon\EchoDungeon\Libraries;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>stdcpp23</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -136,6 +137,7 @@
     <ClCompile Include="Libraries\imgui\imgui_widgets.cpp" />
     <ClCompile Include="Libraries\raylib-imgui-compat\rlImGui.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Utils\Logger\Logger.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Imports\common.h" />
@@ -199,6 +201,7 @@
     <ClInclude Include="Libraries\raylib-imgui-compat\imgui_impl_raylib.h" />
     <ClInclude Include="Libraries\raylib-imgui-compat\rlImGui.h" />
     <ClInclude Include="Libraries\raylib-imgui-compat\rlImGuiColors.h" />
+    <ClInclude Include="Utils\Logger\Logger.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
