@@ -1,8 +1,9 @@
 #include <iostream>
 #include "Imports/common.h"
+#include "Game/Game.h"
 
 int main()
 {
-    Logger::init();
-    CRITICAL("john");
+	Game game; // Create game instance
+	game.begin(); // Start the game
 }
