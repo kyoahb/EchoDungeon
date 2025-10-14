@@ -54,6 +54,7 @@ void Logger::log(spdlog::level::level_enum level, const std::string& message) {
 		throw std::runtime_error("Logger not initialised. Call Logger::init() before logging messages.");
 	}
 	spdlog::log(level, message); // Log the message at the specified level
+	spdlog::default_logger()->flush();
 }
 
 /**

@@ -127,6 +127,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Game\Game.cpp" />
+    <ClCompile Include="Game\State\GameState.cpp" />
+    <ClCompile Include="Game\State\GameStateManager.cpp" />
     <ClCompile Include="Imports\common.cpp" />
     <ClCompile Include="Libraries\imgui\imgui.cpp" />
     <ClCompile Include="Libraries\imgui\imgui_demo.cpp" />
@@ -142,6 +144,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Game\Game.h" />
+    <ClInclude Include="Game\State\GameState.h" />
+    <ClInclude Include="Game\State\GameStateManager.h" />
     <ClInclude Include="Imports\common.h" />
     <ClInclude Include="Libraries\enet\enet.h" />
     <ClInclude Include="Libraries\imgui\imconfig.h" />

@@ -11,16 +11,16 @@ Game::Game() {
 	window = raylib::Window(screenWidth, screenHeight, "Echo Dungeon");
 	rlImGuiSetup(true); // Setup Raylib ImGUI connection
 
-	INFO("Game initialised");
+	TRACE("Game initialised");
 }
 
 Game::~Game() {
 	rlImGuiShutdown(); // Shutdown Raylib ImGUI connection
-	INFO("Game de-initialised");
+	TRACE("Game de-initialised");
 }
 
 void Game::begin() {
-	INFO("Game started");
+	TRACE("Game started");
 	while (!window.ShouldClose()) {
 		update();
 	}
@@ -35,7 +35,8 @@ void Game::update() {
 	window.ClearBackground(GRAY); // Clear previous frame by replacing with full white
 	rlImGuiBegin(); // Start Raylib-ImGUI frame
 
-	auto a = raylib::Text("Example text rendered to the screen.", 20, BLACK);
+	auto exampleText = raylib::Text("Example text rendered to the screen.", 20, BLACK);
+	exampleText.Draw(10, 10);
 
 	rlImGuiEnd(); // End Raylib-ImGUI frame
 
