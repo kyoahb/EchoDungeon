@@ -1,6 +1,6 @@
 #include "Game.h"
-
-Game::Game() {
+#include "Game/State/Instances/MainMenu.h"
+Game::Game() : state_manager(GameStateManager()){
 
 	Logger::init(); // Initialise logger first
 
@@ -11,6 +11,12 @@ Game::Game() {
 	window = raylib::Window(screenWidth, screenHeight, "Echo Dungeon");
 	rlImGuiSetup(true); // Setup Raylib ImGUI connection
 
+	// Add all GameStates here
+	state_manager.add_state("MainMenu", std::make_shared<MainMenu>(*this));
+
+
+	state_manager.set_state("MainMenu"); // Set initial state
+
 	TRACE("Game initialised");
 }
 
@@ -19,6 +25,9 @@ Game::~Game() {
 	TRACE("Game de-initialised");
 }
 
+/**
+ * @brief Start update loop while window is open.
+ */
 void Game::begin() {
 	TRACE("Game started");
 	while (!window.ShouldClose()) {
@@ -26,6 +35,9 @@ void Game::begin() {
 	}
 }
 
+/**
+ * @brief Executed every frame to update the game state.
+ */
 void Game::update() {
 	// Execute pre-frame updates
 
@@ -35,8 +47,7 @@ void Game::update() {
 	window.ClearBackground(GRAY); // Clear previous frame by replacing with full white
 	rlImGuiBegin(); // Start Raylib-ImGUI frame
 
-	auto exampleText = raylib::Text("Example text rendered to the screen.", 20, BLACK);
-	exampleText.Draw(10, 10);
+	state_manager.update(); // Update the current game state
 
 	rlImGuiEnd(); // End Raylib-ImGUI frame
 

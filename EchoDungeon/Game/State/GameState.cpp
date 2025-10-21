@@ -21,3 +21,13 @@ bool GameState::is_active() const {
 void GameState::set_active(bool active) {
 	this->active = active;
 }
+
+void GameState::on_activate() {
+	// Override in derived classes
+}
+void GameState::on_deactivate() {
+	// Override in derived classes
+}
+void GameState::update() {
+	// Override in derived classes
+}
