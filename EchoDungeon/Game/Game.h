@@ -10,7 +10,6 @@ public:
 
 	void begin(); // Start the game and enter the main update loop
 
-private:
 	raylib::Window window; // Storing an instance of the window 
 	GameStateManager state_manager; // Manages the different game states, updated in update()
 

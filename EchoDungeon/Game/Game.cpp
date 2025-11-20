@@ -1,5 +1,9 @@
 #include "Game.h"
 #include "Game/State/Instances/MainMenu.h"
+#include "Game/State/Instances/Settings.h"
+#include "Game/State/Instances/Host.h"
+#include "Game/State/Instances/Join.h"
+
 Game::Game() : state_manager(GameStateManager()){
 
 	Logger::init(); // Initialise logger first
@@ -11,9 +15,17 @@ Game::Game() : state_manager(GameStateManager()){
 	window = raylib::Window(screenWidth, screenHeight, "Echo Dungeon");
 	rlImGuiSetup(true); // Setup Raylib ImGUI connection
 
+
+	// Set default font to Arial, size 24
+	ImGuiIO& io = ImGui::GetIO();
+	ImFont* arialFont = io.Fonts->AddFontFromFileTTF("C:/Windows/Fonts/arial.ttf", 24.0f);
+	io.FontDefault = arialFont; // Set as default for larger text
+
 	// Add all GameStates here
 	state_manager.add_state("MainMenu", std::make_shared<MainMenu>(*this));
-
+	state_manager.add_state("Settings", std::make_shared<Settings>(*this));
+	state_manager.add_state("Host", std::make_shared<Host>(*this));
+	state_manager.add_state("Join", std::make_shared<Join>(*this));
 
 	state_manager.set_state("MainMenu"); // Set initial state
 

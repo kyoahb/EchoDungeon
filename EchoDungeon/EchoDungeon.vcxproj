@@ -129,7 +129,10 @@
     <ClCompile Include="Game\Game.cpp" />
     <ClCompile Include="Game\State\GameState.cpp" />
     <ClCompile Include="Game\State\GameStateManager.cpp" />
+    <ClCompile Include="Game\State\Instances\Host.cpp" />
+    <ClCompile Include="Game\State\Instances\Join.cpp" />
     <ClCompile Include="Game\State\Instances\MainMenu.cpp" />
+    <ClCompile Include="Game\State\Instances\Settings.cpp" />
     <ClCompile Include="Imports\common.cpp" />
     <ClCompile Include="Libraries\imgui\imgui.cpp" />
     <ClCompile Include="Libraries\imgui\imgui_demo.cpp" />
@@ -142,12 +145,16 @@
     <ClCompile Include="Libraries\raylib-imgui-compat\rlImGui.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Utils\Logger\Logger.cpp" />
+    <ClCompile Include="Utils\UI.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Game\Game.h" />
     <ClInclude Include="Game\State\GameState.h" />
     <ClInclude Include="Game\State\GameStateManager.h" />
+    <ClInclude Include="Game\State\Instances\Host.h" />
+    <ClInclude Include="Game\State\Instances\Join.h" />
     <ClInclude Include="Game\State\Instances\MainMenu.h" />
+    <ClInclude Include="Game\State\Instances\Settings.h" />
     <ClInclude Include="Imports\common.h" />
     <ClInclude Include="Libraries\enet\enet.h" />
     <ClInclude Include="Libraries\imgui\imconfig.h" />
@@ -210,6 +217,7 @@
     <ClInclude Include="Libraries\raylib-imgui-compat\rlImGui.h" />
     <ClInclude Include="Libraries\raylib-imgui-compat\rlImGuiColors.h" />
     <ClInclude Include="Utils\Logger\Logger.h" />
+    <ClInclude Include="Utils\UI.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
