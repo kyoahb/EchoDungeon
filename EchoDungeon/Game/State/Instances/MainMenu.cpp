@@ -16,6 +16,9 @@ void MainMenu::on_deactivate() {
 
 void MainMenu::update() {
 	UIUtils::FullscreenWindow([this]() {
+
+		ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 50); // Add some vertical spacing before title
+
 		// Center title
 		ImGui::PushFont(ImGui::GetFont(), 50.0f); // Enlarge font for title
 		UIUtils::CentreText("Echo Dungeon");

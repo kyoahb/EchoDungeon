@@ -1,6 +1,32 @@
 #include "UI.h"
 #include <imgui.h>
 #include <raylib.h>  // For GetScreenWidth, GetScreenHeight
+#include <string>
+
+struct InputTextCallback_UserData
+{
+    std::string* Str;
+    ImGuiInputTextCallback  ChainCallback;
+    void* ChainCallbackUserData;
+};
+
+static int InputTextCallback(ImGuiInputTextCallbackData* data)
+{
+    InputTextCallback_UserData* user_data = (InputTextCallback_UserData*)data->UserData;
+    if (data->EventFlag == ImGuiInputTextFlags_CallbackResize)
+    {
+        std::string* str = user_data->Str;
+        IM_ASSERT(data->Buf == str->c_str());
+        str->resize(data->BufTextLen);
+        data->Buf = (char*)str->c_str();
+    }
+    else if (user_data->ChainCallback)
+    {
+        data->UserData = user_data->ChainCallbackUserData;
+        return user_data->ChainCallback(data);
+    }
+    return 0;
+}
 
 void UIUtils::FullscreenWindow(std::function<void()> content) {
 	ImGui::SetNextWindowPos({ 0, 0 });
@@ -33,4 +59,15 @@ void UIUtils::CentreText(const std::string& text) {
 void UIUtils::CentrePosition(ImVec2 component_size) {
 	float windowWidth = ImGui::GetWindowWidth(); // Calculate size of window
 	ImGui::SetCursorPosX((windowWidth - component_size.x) / 2); // Set next draw size = centre - componentSize/2
+}
+
+bool UIUtils::InputText(const char* label, std::string* str, ImGuiInputTextFlags flags)
+{
+    IM_ASSERT((flags & ImGuiInputTextFlags_CallbackResize) == 0);
+    flags |= ImGuiInputTextFlags_CallbackResize;
+    InputTextCallback_UserData cb_user_data;
+    cb_user_data.Str = str;
+    cb_user_data.ChainCallback = NULL;
+    cb_user_data.ChainCallbackUserData = NULL;
+    return ImGui::InputText(label, (char*)str->c_str(), str->capacity() + 1, flags, InputTextCallback, &cb_user_data);
 }
