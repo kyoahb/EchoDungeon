@@ -46,21 +46,21 @@ void Settings::update() {
 		static int maxfps = 120; // Static to ensure that the 'maxfps' variable is not re-initialised every frame
 		UIUtils::CentrePosition(maxfps_size); // Centre maxfps input box
 		ImGui::PushItemWidth(maxfps_size.x); // Ensure maxfps input box has a fixed width
-		ImGui::PushID("MaxFPSInput"); // Use an ID (necessary for ImGui for an item without label text to have its own ID)
-		ImGui::InputInt("", &maxfps); // Draw a maxfps input box, dont use any side-label ("" = blank text)
-		ImGui::PopID(); // Remove ID from other components
-		ImGui::PopItemWidth(); // Stop using that width
+		ImGui::PushID("MaxFPSInput");
+		ImGui::InputInt("", &maxfps);
+		ImGui::PopID();
+		ImGui::PopItemWidth();
 
 		// Username label and input box
 		UIUtils::CentreText("Username");
 		ImVec2 username_size(150, 20);
 		static std::string username = "John";
-		UIUtils::CentrePosition(username_size); // Centre username input box
-		ImGui::PushItemWidth(username_size.x); // Ensure username input box has a fixed width
-		ImGui::PushID("UsernameInput"); // Use an ID (necessary for ImGui for an item without label text to have its own ID)
-		UIUtils::InputText("", &username); // Draw a username input box, dont use any side-label ("" = blank text)
-		ImGui::PopID(); // Remove ID from other components
-		ImGui::PopItemWidth(); // Stop using that width
+		UIUtils::CentrePosition(username_size);
+		ImGui::PushItemWidth(username_size.x);
+		ImGui::PushID("UsernameInput");
+		UIUtils::InputText("", &username);
+		ImGui::PopID();
+		ImGui::PopItemWidth();
 
 		// Save button
 		UIUtils::CentrePosition(button_size);
