@@ -29,38 +29,40 @@ void Settings::update() {
 		UIUtils::CentreText("Settings");
 		ImGui::PopFont();
 
+		UIUtils::YSpacing(30);
+
 		// Volume label and slider
 		UIUtils::CentreText("Volume");
 		ImVec2 volume_size(400, 20);
-		static int volume = 50; // Static to ensure that the 'volume' variable is not re-initialised every frame
-		UIUtils::CentrePosition(volume_size); // Centre volume slider
-		ImGui::PushItemWidth(volume_size.x); // Ensure volume slider has a fixed width
-		ImGui::PushID("VolumeSlider"); // Use an ID (necessary for ImGui for an item without label text to have its own ID)
-		ImGui::SliderInt("", &volume, 0, 100); // Draw a volume bar, dont use any side-label ("" = blank text)
-		ImGui::PopID(); // Remove ID from other components
-		ImGui::PopItemWidth(); // Stop using that width
+		static int volume = 50;
+		UIUtils::CentrePosition(volume_size);
+		UIUtils::WrapComponent("VolumeSlider", volume_size, [&]() {
+			ImGui::SliderInt("", &volume, 0, 100);
+		});
+
+		UIUtils::YSpacing(20);
 
 		// MaxFPS label and input box
 		UIUtils::CentreText("Max FPS");
 		ImVec2 maxfps_size(150, 20);
-		static int maxfps = 120; // Static to ensure that the 'maxfps' variable is not re-initialised every frame
-		UIUtils::CentrePosition(maxfps_size); // Centre maxfps input box
-		ImGui::PushItemWidth(maxfps_size.x); // Ensure maxfps input box has a fixed width
-		ImGui::PushID("MaxFPSInput");
-		ImGui::InputInt("", &maxfps);
-		ImGui::PopID();
-		ImGui::PopItemWidth();
+		static int maxfps = 120;
+		UIUtils::CentrePosition(maxfps_size);
+		UIUtils::WrapComponent("MaxFPSInput", maxfps_size, [&]() {
+			ImGui::InputInt("", &maxfps);
+		});
+
+		UIUtils::YSpacing(20);
 
 		// Username label and input box
 		UIUtils::CentreText("Username");
 		ImVec2 username_size(150, 20);
 		static std::string username = "John";
 		UIUtils::CentrePosition(username_size);
-		ImGui::PushItemWidth(username_size.x);
-		ImGui::PushID("UsernameInput");
-		UIUtils::InputText("", &username);
-		ImGui::PopID();
-		ImGui::PopItemWidth();
+		UIUtils::WrapComponent("UsernameInput", username_size, [&]() {
+			UIUtils::InputText("", &username);
+		});
+
+		UIUtils::YSpacing(30);
 
 		// Save button
 		UIUtils::CentrePosition(button_size);

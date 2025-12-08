@@ -28,27 +28,29 @@ void Join::update() {
 		UIUtils::CentreText("Join");
 		ImGui::PopFont();
 
+		UIUtils::YSpacing(30);
+
 		// IP address label and input box
 		UIUtils::CentreText("IP Address");
-		ImVec2 ipaddress_size(150, 20);
-		static std::string ip_address = "255.255.255.255"; // Contains placeholder text
+		ImVec2 ipaddress_size(200, 20);
+		static std::string ip_address = "255.255.255.255";
 		UIUtils::CentrePosition(ipaddress_size);
-		ImGui::PushItemWidth(ipaddress_size.x);
-		ImGui::PushID("IPAddressInput");
-		UIUtils::InputText("", &ip_address);
-		ImGui::PopID();
-		ImGui::PopItemWidth();
+		UIUtils::WrapComponent("IPAddressInput", ipaddress_size, [&]() {
+			UIUtils::InputText("", &ip_address);
+		});
+
+		UIUtils::YSpacing(20);
 
 		// Port label and input box
 		UIUtils::CentreText("Port");
 		ImVec2 port_size(150, 20);
 		static int port = 25565;
 		UIUtils::CentrePosition(port_size);
-		ImGui::PushItemWidth(port_size.x);
-		ImGui::PushID("PortInput");
-		ImGui::InputInt("", &port);
-		ImGui::PopID();
-		ImGui::PopItemWidth();
+		UIUtils::WrapComponent("PortInput", port_size, [&]() {
+			ImGui::InputInt("", &port);
+		});
+
+		UIUtils::YSpacing(30);
 
 		UIUtils::CentrePosition(button_size);
 		if (ImGui::Button("Join", button_size)) {

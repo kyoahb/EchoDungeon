@@ -28,27 +28,29 @@ void Host::update() {
 		UIUtils::CentreText("Host");
 		ImGui::PopFont();
 
+		UIUtils::YSpacing(30);
+
 		// Lobby name label and input box
 		UIUtils::CentreText("Lobby name");
 		ImVec2 lobbyname_size(150, 20);
 		static std::string lobby_name = "Lobby";
 		UIUtils::CentrePosition(lobbyname_size);
-		ImGui::PushItemWidth(lobbyname_size.x);
-		ImGui::PushID("LobbyNameInput");
-		UIUtils::InputText("", &lobby_name);
-		ImGui::PopID();
-		ImGui::PopItemWidth();
+		UIUtils::WrapComponent("LobbyNameInput", lobbyname_size, [&]() {
+			UIUtils::InputText("", &lobby_name);
+		});
+
+		UIUtils::YSpacing(20);
 
 		// Max players label and input box
 		UIUtils::CentreText("Max players");
-		ImVec2 maxplayers_size(150, 20);
-		static int max_players = 25565;
+		ImVec2 maxplayers_size(100, 20);
+		static int max_players = 4; // Reasonable default of 4 players
 		UIUtils::CentrePosition(maxplayers_size);
-		ImGui::PushItemWidth(maxplayers_size.x);
-		ImGui::PushID("PortInput");
-		ImGui::InputInt("", &max_players);
-		ImGui::PopID();
-		ImGui::PopItemWidth();
+		UIUtils::WrapComponent("MaxPlayersInput", maxplayers_size, [&]() {
+			ImGui::InputInt("", &max_players);
+		});
+
+		UIUtils::YSpacing(30);
 
 		UIUtils::CentrePosition(button_size);
 		if (ImGui::Button("Host", button_size)) {
