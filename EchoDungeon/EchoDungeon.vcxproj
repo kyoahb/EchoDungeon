@@ -144,6 +144,8 @@
     <ClCompile Include="Libraries\imgui\imgui_widgets.cpp" />
     <ClCompile Include="Libraries\raylib-imgui-compat\rlImGui.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Networking\Packet\Packet.cpp" />
+    <ClCompile Include="Networking\Packet\PacketRegistry.cpp" />
     <ClCompile Include="Utils\Logger\Logger.cpp" />
     <ClCompile Include="Utils\UI.cpp" />
   </ItemGroup>
@@ -216,7 +218,10 @@
     <ClInclude Include="Libraries\raylib-imgui-compat\imgui_impl_raylib.h" />
     <ClInclude Include="Libraries\raylib-imgui-compat\rlImGui.h" />
     <ClInclude Include="Libraries\raylib-imgui-compat\rlImGuiColors.h" />
+    <ClInclude Include="Networking\Packet\Packet.h" />
+    <ClInclude Include="Networking\Packet\PacketRegistry.h" />
     <ClInclude Include="Utils\Logger\Logger.h" />
+    <ClInclude Include="Utils\NetUtils.h" />
     <ClInclude Include="Utils\UI.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

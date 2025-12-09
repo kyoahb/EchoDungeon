@@ -35,13 +35,13 @@ bool GameStateManager::set_state(const std::string& state_name) {
 	if (current_state) {
 		current_state->on_deactivate();
 		current_state->set_active(false);
-		TRACE("State deactivated.");
+		//TRACE("State deactivated.");
 	}
 	// Set the new current state and activate it
 	current_state = it->second;
 	current_state->set_active(true);
 	current_state->on_activate();
-	TRACE("State with name '" + state_name + "' activated successfully.");
+	//TRACE("State with name '" + state_name + "' activated successfully.");
 	return true;
 }
 
