@@ -150,6 +150,7 @@
     <ClCompile Include="Utils\UI.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Game\Events\Event.h" />
     <ClInclude Include="Game\Game.h" />
     <ClInclude Include="Game\State\GameState.h" />
     <ClInclude Include="Game\State\GameStateManager.h" />
