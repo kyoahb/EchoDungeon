@@ -56,7 +56,7 @@ void NetworkUser::update_loop() {
 * @param peer The ENetPeer to send the packet to.
 * @return True if the packet was sent successfully, false otherwise.
 */
-const bool NetworkUser::send_packet(ENetPacket* packet, ENetPeer* peer) {
+bool NetworkUser::send_packet(ENetPacket* packet, ENetPeer* peer) {
 	if (!host) { // Check that the local host is valid
 		ERROR("Cannot send packet, ENetHost is null.");
 		return false;

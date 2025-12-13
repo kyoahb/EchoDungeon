@@ -148,6 +148,7 @@
     <ClCompile Include="Networking\NetworkUser.cpp" />
     <ClCompile Include="Networking\Packet\Packet.cpp" />
     <ClCompile Include="Networking\Packet\PacketRegistry.cpp" />
+    <ClCompile Include="Networking\Server\ServerPeerlist.cpp" />
     <ClCompile Include="Utils\Logger\Logger.cpp" />
     <ClCompile Include="Utils\UI.cpp" />
   </ItemGroup>
@@ -227,6 +228,7 @@
     <ClInclude Include="Networking\NetworkUser.h" />
     <ClInclude Include="Networking\Packet\Packet.h" />
     <ClInclude Include="Networking\Packet\PacketRegistry.h" />
+    <ClInclude Include="Networking\Server\ServerPeerlist.h" />
     <ClInclude Include="Networking\User\UserData.h" />
     <ClInclude Include="Utils\Logger\Logger.h" />
     <ClInclude Include="Utils\NetUtils.h" />
