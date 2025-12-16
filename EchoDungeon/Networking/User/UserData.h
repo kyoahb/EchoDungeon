@@ -7,8 +7,7 @@
 enum class UserStatus : uint8_t {
 	DISCONNECTED = 0,
 	CONNECTING = 1,
-	CONNECTED = 2,
-	KICKED = 3,
+	CONNECTED = 2
 };
 
 struct UserData {
