@@ -3,17 +3,18 @@
 #include "Networking/Packet/Packet.h"
 #include "Networking/NetworkConstants.h"
 #include "Networking/NetworkUser.h"
+#include "Networking/Client/ClientPeerlist.h"
 #include <future>
 
-class Client : public std::enable_shared_from_this<Client> {
+// Inherit NetworkUser
+// and allow shared ptrs to be created from this class. 
+//	This is very useful for referencing the client instance in async operations
+class Client : public NetworkUser, public std::enable_shared_from_this<Client> {
 public:
+	ClientPeerlist peers; // Client's peerlist
 
 	Client();
 	~Client();
-
-private:
-	bool is_connected = false;
-	
 
 	std::future<bool> connect(const std::string& address, uint16_t port);
 	std::future<bool> disconnect(); 
@@ -24,5 +25,8 @@ private:
 	void start(); // Start the client networking loop
 	void stop();  // Stop the client networking loop
 	void update(); // Update the client networking state
+
+	bool is_connected() const; // Check if the client is connected to a server
+private:
 
 };

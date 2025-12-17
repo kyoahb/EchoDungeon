@@ -3,6 +3,9 @@
 #include "Networking/User/UserData.h"
 class ClientPeerlist {
 public:
+	ENetPeer* server_peer = nullptr; // Pointer to the server's ENetPeer
+
+
 	ClientPeerlist() = default;
 
 	void clear(); // Clear the peerlist (used on disconnect)

@@ -144,10 +144,12 @@
     <ClCompile Include="Libraries\imgui\imgui_widgets.cpp" />
     <ClCompile Include="Libraries\raylib-imgui-compat\rlImGui.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Networking\Client\Client.cpp" />
     <ClCompile Include="Networking\Client\ClientPeerlist.cpp" />
     <ClCompile Include="Networking\NetworkUser.cpp" />
     <ClCompile Include="Networking\Packet\Packet.cpp" />
     <ClCompile Include="Networking\Packet\PacketRegistry.cpp" />
+    <ClCompile Include="Networking\Server\Server.cpp" />
     <ClCompile Include="Networking\Server\ServerPeerlist.cpp" />
     <ClCompile Include="Utils\Logger\Logger.cpp" />
     <ClCompile Include="Utils\UI.cpp" />
@@ -228,6 +230,7 @@
     <ClInclude Include="Networking\NetworkUser.h" />
     <ClInclude Include="Networking\Packet\Packet.h" />
     <ClInclude Include="Networking\Packet\PacketRegistry.h" />
+    <ClInclude Include="Networking\Server\Server.h" />
     <ClInclude Include="Networking\Server\ServerPeerlist.h" />
     <ClInclude Include="Networking\User\UserData.h" />
     <ClInclude Include="Utils\Logger\Logger.h" />
