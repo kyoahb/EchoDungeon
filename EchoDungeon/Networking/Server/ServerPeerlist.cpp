@@ -21,7 +21,7 @@ void ServerPeerlist::add_peer(ENetPeer* peer, UserData user) {
 /**
  * @brief Removes a peer from the peerlist by ENetPeer.
  * @param peer The ENetPeer to remove.
- */
+ */ 
 void ServerPeerlist::remove_peer(ENetPeer* peer) {
     auto it = std::find_if(peers.begin(), peers.end(), [&](const auto& pair) {
         return pair.second.peer == peer;
