@@ -1,6 +1,8 @@
 #pragma once
 #include "Imports/common.h"
 #include "Game/State/GameStateManager.h"
+#include "Networking/Client/Client.h"
+#include "Networking/Server/Server.h"
 
 class Game {
 public:
@@ -12,7 +14,8 @@ public:
 
 	raylib::Window window; // Storing an instance of the window 
 	GameStateManager state_manager; // Manages the different game states, updated in update()
-
+	std::shared_ptr<Client> client; // The client instance for networking
+	std::shared_ptr<Server> server; // The server instance for networking
 	void update(); // Update the game state
 
 };

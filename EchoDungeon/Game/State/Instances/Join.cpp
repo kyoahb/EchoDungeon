@@ -54,11 +54,20 @@ void Join::update() {
 
 		UIUtils::CentrePosition(button_size);
 		if (ImGui::Button("Join", button_size)) {
-			TRACE("Join confirmation pressed");
+			TRACE("Join button pressed with IP: " + ip_address + " Port: " + std::to_string(port));
+			// Create client
+			game.client = std::make_shared<Client>();
 
-			// Print out all information as a test
-			TRACE(" - IP: " + ip_address);
-			TRACE(" - Port: " + std::to_string(port));
+			// Attempt to connect
+			bool success = game.client->connect(ip_address, static_cast<uint16_t>(port)).get();
+			if (success) {
+				// Start client networking loop
+				game.client->start();
+
+			} else {
+			}
+
+
 		}
 		});
 }

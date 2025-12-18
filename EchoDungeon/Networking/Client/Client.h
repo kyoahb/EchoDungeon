@@ -16,7 +16,7 @@ public:
 	Client();
 	~Client();
 
-	std::future<bool> connect(const std::string& address, uint16_t port);
+	std::future<bool> connect(const std::string& ip, uint16_t port);
 	std::future<bool> disconnect(); 
 	bool force_disconnect();
 

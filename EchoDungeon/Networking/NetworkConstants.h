@@ -9,7 +9,7 @@ namespace NetworkConstants {
 	constexpr const int MAX_SIMULTANEOUS_CONNECTIONS = 4;
 
 	// Default port for networking (Server/Client)
-	constexpr const uint16_t DEFAULT_PORT = 7422;
+	constexpr const int DEFAULT_PORT = 7422;
 
 	// Maximum number of channels for ENet communication (Server/Client)
 	constexpr const int MAX_CHANNELS = 2;

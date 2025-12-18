@@ -7,6 +7,12 @@
 Game::Game() : state_manager(GameStateManager()){
 
 	Logger::init(); // Initialise logger first
+	if (enet_initialize() != 0) { // Initialise ENet
+		ERROR("Failed to initialize ENet");
+		throw std::runtime_error("Failed to initialize ENet");
+	}
+	atexit(enet_deinitialize); // Ensure ENet deinitializes on exit
+
 
 	// Setup raylib window
 	const int screenWidth = 720;

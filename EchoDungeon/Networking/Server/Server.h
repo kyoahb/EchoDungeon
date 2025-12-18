@@ -16,7 +16,7 @@ struct OpenServer {
 // Inherit NetworkUser
 // and allow shared ptrs to be created from this class. 
 //	This is very useful for referencing the server instance in async operations
-class Server : public NetworkUser, public std::enable_shared_from_this<ServerPeerlist> {
+class Server : public NetworkUser, public std::enable_shared_from_this<Server> {
 public:
 	ServerPeerlist peers; // Server's peerlist
 	OpenServer server_info; // Information about the running server.

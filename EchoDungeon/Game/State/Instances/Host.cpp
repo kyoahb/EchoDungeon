@@ -1,6 +1,9 @@
 #include "Host.h"
 #include "Game/Game.h"
 #include "Utils/UI.h"
+#include "Networking/Server/Server.h"
+#include "Networking/Client/Client.h"
+#include "Networking/NetworkConstants.h"
 
 Host::Host(Game& game) : GameState(game) {
 	// Constructor
@@ -54,11 +57,29 @@ void Host::update() {
 
 		UIUtils::CentrePosition(button_size);
 		if (ImGui::Button("Host", button_size)) {
-			TRACE("Host confirmation pressed");
+			TRACE("Host button pressed with Lobby Name: " + lobby_name + " Max Players: " + std::to_string(max_players));
+			// Create server
+			game.server = std::make_shared<Server>("0.0.0.0", NetworkConstants::DEFAULT_PORT);
+			// Address 0.0.0.0 binds to all interfaces, allowing access from
+			//		- localhost / 127.0.0.1
+			//		- local network IP (e.g., 192.168.x.x)
+			//		- public IP (if port forwarding is set up)
 
-			// Print out all information as a test
-			TRACE(" - Lobby name: " + lobby_name);
-			TRACE(" - Max players: " + std::to_string(max_players));
+			// Start server networking loop
+			game.server->start();
+
+
+
+			// Create host client
+			game.client = std::make_shared<Client>();
+			// Attempt to connect to local server
+			bool success = game.client->connect("127.0.0.1", NetworkConstants::DEFAULT_PORT).get();
+			if (success) {
+				// Start client networking loop
+				game.client->start();
+			} else {
+			}
+
 		}
 		});
 }
