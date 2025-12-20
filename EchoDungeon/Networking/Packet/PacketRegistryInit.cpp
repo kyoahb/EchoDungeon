@@ -11,15 +11,15 @@
 #define CLIENT_SIDE_EVENT_HANDLER(BaseName) \
     [](Packet& packet) { \
         auto& typed_packet = static_cast<BaseName##Packet&>(packet); \
-        Client::BaseName##EventData data(typed_packet); \
-        Client::BaseName##Event::trigger(data); \
+        ClientEvents::BaseName##EventData data(typed_packet); \
+        ClientEvents::BaseName##Event::trigger(data); \
     }
 
 #define SERVER_SIDE_EVENT_HANDLER(BaseName) \
     [](Packet& packet, ENetPeer* peer) { \
         auto& typed_packet = static_cast<BaseName##Packet&>(packet); \
-        Server::BaseName##EventData data(typed_packet, peer); \
-        Server::BaseName##Event::trigger(data); \
+        ServerEvents::BaseName##EventData data(typed_packet, peer); \
+        ServerEvents::BaseName##Event::trigger(data); \
     }
 
 #define PACKET_CONVERTER(BaseName) \

@@ -102,6 +102,9 @@
     <ClCompile Include="Networking\Packet\PacketRegistryInit.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Game\State\Instances\Lobby.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Libraries\enet\enet.h">
@@ -372,6 +375,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Networking\Server\OpenServer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\State\Instances\Lobby.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

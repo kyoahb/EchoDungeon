@@ -5,6 +5,7 @@
 #include "Networking/NetworkUser.h"
 #include "Networking/Client/ClientPeerlist.h"
 #include <future>
+#include "Networking/Server/OpenServer.h"
 
 // Inherit NetworkUser
 // and allow shared ptrs to be created from this class. 
@@ -13,6 +14,7 @@ class Client : public NetworkUser, public std::enable_shared_from_this<Client> {
 public:
 	ClientPeerlist peers; // Client's peerlist
 	std::string username;
+	OpenServer connected_server_info; // Information about the connected server.
 
 	Client(const std::string& username = "User");
 	~Client();

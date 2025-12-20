@@ -1,7 +1,7 @@
 #include "Client.h"
 #include "Networking/Packet/PacketRegistry.h"
-
 #include "Networking/Packet/Instances/ConnectionInitiation.h"
+#include "Game/Events/EventList.h"
 
 Client::Client(const std::string& username) : NetworkUser(), peers(ClientPeerlist()) {
 	this->username = username;
@@ -100,9 +100,12 @@ void Client::update() {
 	while (enet_host_service(host, &event, 0) > 0) {
 		switch (event.type) {
 			case ENET_EVENT_TYPE_CONNECT: {
-				INFO("Successfully connected to server : sending ConnectionInitiation packet");
+				INFO("Successfully connected to server, sending ConnectionInitiation packet");
 				auto init_packet = ConnectionInitiationPacket(username);
 				send_packet(init_packet);
+				
+				ClientEvents::ConnectionEventData data(event);
+				ClientEvents::ConnectionEvent::trigger(data);
 				break;
 			}
 			case ENET_EVENT_TYPE_RECEIVE: {
@@ -114,12 +117,14 @@ void Client::update() {
 			case ENET_EVENT_TYPE_DISCONNECT: {
 				INFO("Disconnected from server");
 				peers.server_peer = nullptr;
+				
+				ClientEvents::DisconnectEventData data(event);
+				ClientEvents::DisconnectEvent::trigger(data);
 				break;
 			}
 			default:
 				break;
 		}
-		// Implement a client connection timeout before failing
 	}
 }
 

@@ -1,5 +1,6 @@
 #include "Server.h"
 #include "Networking/Packet/PacketRegistry.h"
+#include "Game/Events/EventList.h"
 
 /**
  * @brief Constructs a Server instance and initializes the ENet host.
@@ -180,13 +181,15 @@ void Server::stop() {
  * @brief Executes a single update cycle for the server, processing incoming events and packets.
  */
 void Server::update() {
-ENetEvent event;
-while (enet_host_service(host, &event, 0) > 0) {
-    switch (event.type) {
-            case ENET_EVENT_TYPE_CONNECT: 
+    ENetEvent event;
+    while (enet_host_service(host, &event, 0) > 0) {
+        switch (event.type) {
+            case ENET_EVENT_TYPE_CONNECT: {
                 INFO("A new client connected from " + NetUtils::get_ip_string(event.peer->address));
-                // TODO: Add peer to peerlist after handshake/authentication
+                ServerEvents::ConnectionEventData data(event);
+                ServerEvents::ConnectionEvent::trigger(data);
                 break;
+            }
 
             case ENET_EVENT_TYPE_RECEIVE:
                 // Deserialize and trigger packet event
@@ -194,15 +197,19 @@ while (enet_host_service(host, &event, 0) > 0) {
                 enet_packet_destroy(event.packet);
                 break;
 
-            case ENET_EVENT_TYPE_DISCONNECT:
+            case ENET_EVENT_TYPE_DISCONNECT: {
                 INFO("A client disconnected");
-                // TODO: Remove peer from peerlist
+                ServerEvents::DisconnectEventData data(event);
+                ServerEvents::DisconnectEvent::trigger(data);
                 break;
+            }
 
-            case ENET_EVENT_TYPE_DISCONNECT_TIMEOUT:
+            case ENET_EVENT_TYPE_DISCONNECT_TIMEOUT: {
                 INFO("A client disconnected due to timeout");
-                // TODO: Remove peer from peerlist
+                ServerEvents::DisconnectTimeoutEventData data(event);
+                ServerEvents::DisconnectTimeoutEvent::trigger(data);
                 break;
+            }
 
             default:
                 break;
