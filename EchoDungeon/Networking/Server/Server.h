@@ -5,13 +5,7 @@
 #include "Networking/Server/ServerPeerlist.h"
 #include <future>
 #include <optional>
-
-// Struct defining a running server
-struct OpenServer {
-	std::string address = ""; // Server address
-	uint16_t port = 0;        // Server port
-	bool closed = false;    // Is the server denying new connections
-};
+#include "OpenServer.h"
 
 // Inherit NetworkUser
 // and allow shared ptrs to be created from this class. 
@@ -27,8 +21,8 @@ public:
 	std::future<bool> disconnect_peer(uint16_t peer_id);
 	std::future<bool> disconnect_all();
 
-	bool send_packet(const Packet& packet, uint16_t peer_id);
-	bool broadcast_packet(const Packet& packet, const std::optional<uint16_t>& exclude_peer_id = std::nullopt);
+	bool send_packet(Packet& packet, uint16_t peer_id);
+	bool broadcast_packet(Packet& packet, const std::optional<uint16_t>& exclude_peer_id = std::nullopt);
 
 	void start(); // Start the server networking loop
 	void stop();  // Stop the server networking loop

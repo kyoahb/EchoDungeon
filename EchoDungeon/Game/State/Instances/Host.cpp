@@ -71,7 +71,7 @@ void Host::update() {
 
 
 			// Create host client
-			game.client = std::make_shared<Client>();
+			game.client = std::make_shared<Client>(game.settings.username);
 			// Attempt to connect to local server
 			bool success = game.client->connect("127.0.0.1", NetworkConstants::DEFAULT_PORT).get();
 			if (success) {

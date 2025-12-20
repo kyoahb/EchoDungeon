@@ -149,6 +149,7 @@
     <ClCompile Include="Networking\NetworkUser.cpp" />
     <ClCompile Include="Networking\Packet\Packet.cpp" />
     <ClCompile Include="Networking\Packet\PacketRegistry.cpp" />
+    <ClCompile Include="Networking\Packet\PacketRegistryInit.cpp" />
     <ClCompile Include="Networking\Server\Server.cpp" />
     <ClCompile Include="Networking\Server\ServerPeerlist.cpp" />
     <ClCompile Include="Utils\Logger\Logger.cpp" />
@@ -156,7 +157,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Game\Events\Event.h" />
+    <ClInclude Include="Game\Events\EventList.h" />
     <ClInclude Include="Game\Game.h" />
+    <ClInclude Include="Game\GameSettings.h" />
     <ClInclude Include="Game\State\GameState.h" />
     <ClInclude Include="Game\State\GameStateManager.h" />
     <ClInclude Include="Game\State\Instances\Host.h" />
@@ -228,8 +231,15 @@
     <ClInclude Include="Networking\Client\ClientPeerlist.h" />
     <ClInclude Include="Networking\NetworkConstants.h" />
     <ClInclude Include="Networking\NetworkUser.h" />
+    <ClInclude Include="Networking\Packet\Instances\ConnectionConfirmation.h" />
+    <ClInclude Include="Networking\Packet\Instances\ConnectionInitiation.h" />
+    <ClInclude Include="Networking\Packet\Instances\ConnectionRefusal.h" />
+    <ClInclude Include="Networking\Packet\Instances\DisconnectInfo.h" />
+    <ClInclude Include="Networking\Packet\Instances\DisconnectKick.h" />
+    <ClInclude Include="Networking\Packet\Instances\ServerDataUpdate.h" />
     <ClInclude Include="Networking\Packet\Packet.h" />
     <ClInclude Include="Networking\Packet\PacketRegistry.h" />
+    <ClInclude Include="Networking\Server\OpenServer.h" />
     <ClInclude Include="Networking\Server\Server.h" />
     <ClInclude Include="Networking\Server\ServerPeerlist.h" />
     <ClInclude Include="Networking\User\UserData.h" />

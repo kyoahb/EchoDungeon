@@ -64,7 +64,7 @@ public:
 				std::async(std::launch::async, callback, data);
 			}
 			else {
-				Log::error("Invalid callback with id " + std::to_string(id) + " found.");
+				ERROR("Invalid callback with id " + std::to_string(id) + " found.");
 				callbacks.erase(id); // Remove invalid callback if it is null
 			}
 		}

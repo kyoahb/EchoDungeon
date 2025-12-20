@@ -56,7 +56,7 @@ void Join::update() {
 		if (ImGui::Button("Join", button_size)) {
 			TRACE("Join button pressed with IP: " + ip_address + " Port: " + std::to_string(port));
 			// Create client
-			game.client = std::make_shared<Client>();
+			game.client = std::make_shared<Client>(game.settings.username);
 
 			// Attempt to connect
 			bool success = game.client->connect(ip_address, static_cast<uint16_t>(port)).get();

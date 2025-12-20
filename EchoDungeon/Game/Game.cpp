@@ -3,6 +3,7 @@
 #include "Game/State/Instances/Settings.h"
 #include "Game/State/Instances/Host.h"
 #include "Game/State/Instances/Join.h"
+#include "Networking/Packet/PacketRegistry.h"
 
 Game::Game() : state_manager(GameStateManager()){
 
@@ -12,6 +13,8 @@ Game::Game() : state_manager(GameStateManager()){
 		throw std::runtime_error("Failed to initialize ENet");
 	}
 	atexit(enet_deinitialize); // Ensure ENet deinitializes on exit
+
+	PacketRegistry::initializeRegistry(); // Initialize packet registry
 
 
 	// Setup raylib window

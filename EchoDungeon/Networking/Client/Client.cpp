@@ -1,6 +1,10 @@
 #include "Client.h"
 #include "Networking/Packet/PacketRegistry.h"
-Client::Client() : NetworkUser(), peers(ClientPeerlist()) {
+
+#include "Networking/Packet/Instances/ConnectionInitiation.h"
+
+Client::Client(const std::string& username) : NetworkUser(), peers(ClientPeerlist()) {
+	this->username = username;
 
 	// Create client host. No address + 1 max peer since this is a client
 	host = enet_host_create(nullptr, 1, NetworkConstants::MAX_CHANNELS, 
@@ -41,7 +45,7 @@ bool Client::is_connected() const {
 * @brief Sends a packet to the connected server.
 * @param packet The packet to send.
 */
-bool Client::send_packet(const Packet& packet) {
+bool Client::send_packet(Packet& packet) {
 	TRACE("Sending packet " + PacketRegistry::getPacketName(packet.header.type) + " to server");
 
 	if (!is_connected()) {
@@ -94,19 +98,24 @@ void Client::stop() {
 void Client::update() {
 	ENetEvent event;
 	while (enet_host_service(host, &event, 0) > 0) {
-		// Identify packets, send off events
 		switch (event.type) {
-			case ENET_EVENT_TYPE_CONNECT:
-				INFO("Successfully connected to server");
+			case ENET_EVENT_TYPE_CONNECT: {
+				INFO("Successfully connected to server : sending ConnectionInitiation packet");
+				auto init_packet = ConnectionInitiationPacket(username);
+				send_packet(init_packet);
 				break;
-			case ENET_EVENT_TYPE_RECEIVE:
-				// Handle packets
+			}
+			case ENET_EVENT_TYPE_RECEIVE: {
+				// Deserialize and trigger packet event
+				PacketRegistry::handleClientPacket(event.packet);
 				enet_packet_destroy(event.packet);
 				break;
-			case ENET_EVENT_TYPE_DISCONNECT:
+			}
+			case ENET_EVENT_TYPE_DISCONNECT: {
 				INFO("Disconnected from server");
 				peers.server_peer = nullptr;
 				break;
+			}
 			default:
 				break;
 		}

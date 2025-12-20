@@ -98,7 +98,7 @@ std::future<bool> Server::disconnect_all() {
  * @param peer_id The server-side ID of the peer to send the packet to.
  * @return true if the packet was sent successfully, false otherwise.
  */
-bool Server::send_packet(const Packet& packet, uint16_t peer_id) {
+bool Server::send_packet(Packet& packet, uint16_t peer_id) {
     TRACE("Sending packet " + PacketRegistry::getPacketName(packet.header.type) + " to peer " + std::to_string(peer_id));
 
 	std::optional<PeerEntry> opt_target_peer = peers.get_peer_by_id(peer_id);
@@ -121,7 +121,7 @@ bool Server::send_packet(const Packet& packet, uint16_t peer_id) {
  * @param exclude_peer_id Optional peer ID to exclude from the broadcast.
  * @return true if the packet was broadcast successfully, false otherwise.
  */
-bool Server::broadcast_packet(const Packet& packet, const std::optional<uint16_t>& exclude_peer_id) {
+bool Server::broadcast_packet(Packet& packet, const std::optional<uint16_t>& exclude_peer_id) {
     TRACE("Broadcasting packet " + PacketRegistry::getPacketName(packet.header.type) + " to all peers" + 
           (exclude_peer_id.has_value() ? " (excluding peer " + std::to_string(exclude_peer_id.value()) + ")" : ""));
 
@@ -180,17 +180,17 @@ void Server::stop() {
  * @brief Executes a single update cycle for the server, processing incoming events and packets.
  */
 void Server::update() {
-    ENetEvent event;
-    while (enet_host_service(host, &event, 0) > 0) {
-        switch (event.type) {
-            case ENET_EVENT_TYPE_CONNECT:
+ENetEvent event;
+while (enet_host_service(host, &event, 0) > 0) {
+    switch (event.type) {
+            case ENET_EVENT_TYPE_CONNECT: 
                 INFO("A new client connected from " + NetUtils::get_ip_string(event.peer->address));
                 // TODO: Add peer to peerlist after handshake/authentication
                 break;
 
             case ENET_EVENT_TYPE_RECEIVE:
-                // Identify packets, send off events
-                // TODO: Deserialize packet and handle it
+                // Deserialize and trigger packet event
+                PacketRegistry::handleServerPacket(event.peer, event.packet);
                 enet_packet_destroy(event.packet);
                 break;
 

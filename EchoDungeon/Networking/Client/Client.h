@@ -12,15 +12,16 @@
 class Client : public NetworkUser, public std::enable_shared_from_this<Client> {
 public:
 	ClientPeerlist peers; // Client's peerlist
+	std::string username;
 
-	Client();
+	Client(const std::string& username = "User");
 	~Client();
 
 	std::future<bool> connect(const std::string& ip, uint16_t port);
 	std::future<bool> disconnect(); 
 	bool force_disconnect();
 
-	bool send_packet(const Packet& packet);
+	bool send_packet(Packet& packet);
 
 	void start(); // Start the client networking loop
 	void stop();  // Stop the client networking loop

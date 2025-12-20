@@ -1,0 +1,56 @@
+#include "PacketRegistry.h"
+#include "Networking/Packet/Instances/ConnectionInitiation.h"
+#include "Networking/Packet/Instances/ConnectionRefusal.h"
+#include "Networking/Packet/Instances/ConnectionConfirmation.h"
+#include "Networking/Packet/Instances/DisconnectInfo.h"
+#include "Networking/Packet/Instances/DisconnectKick.h"
+#include "Networking/Packet/Instances/ServerDataUpdate.h"
+
+#include "Game/Events/EventList.h"
+
+#define CLIENT_SIDE_EVENT_HANDLER(BaseName) \
+    [](Packet& packet) { \
+        auto& typed_packet = static_cast<BaseName##Packet&>(packet); \
+        Client::BaseName##EventData data(typed_packet); \
+        Client::BaseName##Event::trigger(data); \
+    }
+
+#define SERVER_SIDE_EVENT_HANDLER(BaseName) \
+    [](Packet& packet, ENetPeer* peer) { \
+        auto& typed_packet = static_cast<BaseName##Packet&>(packet); \
+        Server::BaseName##EventData data(typed_packet, peer); \
+        Server::BaseName##Event::trigger(data); \
+    }
+
+#define PACKET_CONVERTER(BaseName) \
+    [](const std::string& raw_data) { \
+        return std::make_unique<BaseName##Packet>(BaseName##Packet::deserialize(raw_data)); \
+    }
+
+// Macro for server-only packets (Client -> Server)
+#define REGISTER_SERVER_PACKET(Type, BaseName) \
+    registerPacket(Type, #BaseName, PACKET_CONVERTER(BaseName), SERVER_SIDE_EVENT_HANDLER(BaseName), nullptr)
+
+// Macro for client-only packets (Server -> Client)
+#define REGISTER_CLIENT_PACKET(Type, BaseName) \
+    registerPacket(Type, #BaseName, PACKET_CONVERTER(BaseName), nullptr, CLIENT_SIDE_EVENT_HANDLER(BaseName))
+
+// Macro for bidirectional packets (both directions)
+#define REGISTER_BIDIRECTIONAL_PACKET(Type, BaseName) \
+    registerPacket(Type, #BaseName, PACKET_CONVERTER(BaseName), SERVER_SIDE_EVENT_HANDLER(BaseName), CLIENT_SIDE_EVENT_HANDLER(BaseName))
+
+/**
+ * @brief Initializes all packet types in the registry.
+ * Call this once at application startup before any networking operations.
+ */
+void PacketRegistry::initializeRegistry() {
+    // Client -> Server packets
+    REGISTER_SERVER_PACKET(1, ConnectionInitiation);
+    REGISTER_SERVER_PACKET(4, DisconnectInfo);
+
+    // Server -> Client packets
+    REGISTER_CLIENT_PACKET(2, ConnectionRefusal);
+    REGISTER_CLIENT_PACKET(3, ConnectionConfirmation);
+    REGISTER_CLIENT_PACKET(5, DisconnectKick);
+    REGISTER_CLIENT_PACKET(6, ServerDataUpdate);
+}

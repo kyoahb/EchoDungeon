@@ -9,6 +9,8 @@ Settings::Settings(Game& game) : GameState(game) {
 
 void Settings::on_activate() {
 	TRACE("Settings activated");
+
+	settings_buffer = game.settings; // Load current settings into buffer
 }
 
 void Settings::on_deactivate() {
@@ -34,10 +36,9 @@ void Settings::update() {
 		// Volume label and slider
 		UIUtils::CentreText("Volume");
 		ImVec2 volume_size(400, 20);
-		static int volume = 50;
 		UIUtils::CentrePosition(volume_size);
 		UIUtils::WrapComponent("VolumeSlider", volume_size, [&]() {
-			ImGui::SliderInt("", &volume, 0, 100);
+			ImGui::SliderInt("", &settings_buffer.volume, 0, 100);
 		});
 
 		UIUtils::YSpacing(20);
@@ -45,10 +46,9 @@ void Settings::update() {
 		// MaxFPS label and input box
 		UIUtils::CentreText("Max FPS");
 		ImVec2 maxfps_size(150, 20);
-		static int maxfps = 120;
 		UIUtils::CentrePosition(maxfps_size);
 		UIUtils::WrapComponent("MaxFPSInput", maxfps_size, [&]() {
-			ImGui::InputInt("", &maxfps);
+			ImGui::InputInt("", &settings_buffer.max_fps);
 		});
 
 		UIUtils::YSpacing(20);
@@ -56,10 +56,9 @@ void Settings::update() {
 		// Username label and input box
 		UIUtils::CentreText("Username");
 		ImVec2 username_size(150, 20);
-		static std::string username = "John";
 		UIUtils::CentrePosition(username_size);
 		UIUtils::WrapComponent("UsernameInput", username_size, [&]() {
-			UIUtils::InputText("", &username);
+			UIUtils::InputText("", &settings_buffer.username);
 		});
 
 		UIUtils::YSpacing(30);
@@ -67,13 +66,12 @@ void Settings::update() {
 		// Save button
 		UIUtils::CentrePosition(button_size);
 		if (ImGui::Button("Save", button_size)) {
-			TRACE("Save button pressed");
-			
-			// Print out all information as a test
-			TRACE("Settings saved:");
-			TRACE(" - Volume: " + std::to_string(volume));
-			TRACE(" - Max FPS: " + std::to_string(maxfps));
-			TRACE(" - Username: " + username);
+			TRACE("Settings saved: Volume=" + std::to_string(settings_buffer.volume) +
+				  " MaxFPS=" + std::to_string(settings_buffer.max_fps) +
+				  " Username=" + settings_buffer.username);
+
+			// Apply settings
+			game.settings = settings_buffer;
 		}
 
 	});
