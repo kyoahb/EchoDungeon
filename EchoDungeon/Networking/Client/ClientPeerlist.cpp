@@ -6,7 +6,7 @@
  */
 void ClientPeerlist::clear() {
     peers.clear();
-    local_server_side_id = 0;
+	// local_server_side_id = 0; Caused an issue so we no longer reset this
 }
 
 /**

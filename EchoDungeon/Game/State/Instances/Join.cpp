@@ -59,15 +59,14 @@ void Join::update() {
 			game.client = std::make_shared<Client>(game.settings.username);
 
 			// Attempt to connect
-			bool success = game.client->connect(ip_address, static_cast<uint16_t>(port)).get();
-			if (success) {
-				// Start client networking loop
-				game.client->start();
-
+			auto result = game.client->connect(ip_address, static_cast<uint16_t>(port)).get();
+			if (result.success) {
+				INFO("Connected to server successfully");
+				game.state_manager.set_state("Lobby");
 			} else {
+				ERROR("Failed to connect to server: " + result.failure_reason);
+				game.client = nullptr;
 			}
-
-
 		}
 		});
 }

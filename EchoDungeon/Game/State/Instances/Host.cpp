@@ -60,6 +60,8 @@ void Host::update() {
 			TRACE("Host button pressed with Lobby Name: " + lobby_name + " Max Players: " + std::to_string(max_players));
 			// Create server
 			game.server = std::make_shared<Server>("0.0.0.0", NetworkConstants::DEFAULT_PORT);
+			game.server->server_info.lobby_name = lobby_name;
+			game.server->server_info.max_players = max_players;
 			// Address 0.0.0.0 binds to all interfaces, allowing access from
 			//		- localhost / 127.0.0.1
 			//		- local network IP (e.g., 192.168.x.x)
@@ -68,16 +70,19 @@ void Host::update() {
 			// Start server networking loop
 			game.server->start();
 
-
-
 			// Create host client
 			game.client = std::make_shared<Client>(game.settings.username);
 			// Attempt to connect to local server
-			bool success = game.client->connect("127.0.0.1", NetworkConstants::DEFAULT_PORT).get();
-			if (success) {
-				// Start client networking loop
-				game.client->start();
+			auto result = game.client->connect("127.0.0.1", NetworkConstants::DEFAULT_PORT).get();
+			if (result.success) {
+				INFO("Host client connected successfully");
+				game.state_manager.set_state("Lobby");
 			} else {
+				ERROR("Host client failed to connect: " + result.failure_reason);
+				// Cleanup on failure
+				game.server->stop();
+				game.server = nullptr;
+				game.client = nullptr;
 			}
 
 		}

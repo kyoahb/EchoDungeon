@@ -84,16 +84,10 @@
     <ClCompile Include="Networking\Packet\Packet.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Networking\Client\Client.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Networking\Client\ClientPeerlist.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Networking\NetworkUser.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Networking\Server\Server.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Networking\Server\ServerPeerlist.cpp">
@@ -103,6 +97,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Game\State\Instances\Lobby.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Networking\Server\Server.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Networking\Client\Client.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

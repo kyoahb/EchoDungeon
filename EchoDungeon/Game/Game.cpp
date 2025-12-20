@@ -3,6 +3,7 @@
 #include "Game/State/Instances/Settings.h"
 #include "Game/State/Instances/Host.h"
 #include "Game/State/Instances/Join.h"
+#include "Game/State/Instances/Lobby.h"
 #include "Networking/Packet/PacketRegistry.h"
 
 Game::Game() : state_manager(GameStateManager()){
@@ -35,6 +36,7 @@ Game::Game() : state_manager(GameStateManager()){
 	state_manager.add_state("Settings", std::make_shared<Settings>(*this));
 	state_manager.add_state("Host", std::make_shared<Host>(*this));
 	state_manager.add_state("Join", std::make_shared<Join>(*this));
+	state_manager.add_state("Lobby", std::make_shared<Lobby>(*this));
 
 	state_manager.set_state("MainMenu"); // Set initial state
 

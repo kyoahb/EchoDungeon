@@ -1,6 +1,13 @@
 #include "Server.h"
 #include "Networking/Packet/PacketRegistry.h"
+#include "Networking/Packet/Instances/ConnectionInitiation.h"
+#include "Networking/Packet/Instances/ConnectionConfirmation.h"
+#include "Networking/Packet/Instances/ConnectionRefusal.h"
+#include "Networking/Packet/Instances/ServerDataUpdate.h"
 #include "Game/Events/EventList.h"
+
+// Timeout for pending connections (1 minute)
+constexpr auto PENDING_CONNECTION_TIMEOUT = std::chrono::seconds(60);
 
 /**
  * @brief Constructs a Server instance and initializes the ENet host.
@@ -28,6 +35,13 @@ Server::Server(const std::string& address, int port) : NetworkUser(), peers(Serv
         return;
     }
 
+    // Register event callback for ConnectionInitiation packets
+    ServerEvents::ConnectionInitiationEvent::register_callback(
+        [this](const ServerEvents::ConnectionInitiationEventData& data) {
+            handle_connection_initiation(data.peer, data.packet.client_preferred_username);
+        }
+    );
+
     INFO("Server created at " + address + ":" + std::to_string(port));
 }
 
@@ -54,26 +68,24 @@ Server::~Server() {
     INFO("Server destroyed");
 }
 
+// ============================================================================
+// PEER MANAGEMENT
+// ============================================================================
+
 /**
  * @brief Disconnects a specific peer from the server.
  * @param peer_id The server-side ID of the peer to disconnect.
- * @return A future that resolves to true if the disconnection was successful, false otherwise.
+ * @return A future that resolves to true if the disconnection was successful.
  */
 std::future<bool> Server::disconnect_peer(uint16_t peer_id) {
-    // TO BE IMPLEMENTED FULLY
-
-    // FOR NOW, find the peer and force disconnect
     std::optional<PeerEntry> peer_data = peers.get_peer_by_id(peer_id);
     if (!peer_data.has_value()) {
         WARNING("Peer with ID " + std::to_string(peer_id) + " not found, cannot disconnect");
         return std::async(std::launch::deferred, [] { return false; });
     }
 
-    // Built in ENet disconnect
-	enet_peer_disconnect(peer_data->peer, 0);
-
-    // Remove from peerlist
-	peers.remove_peer(peer_id);
+    enet_peer_disconnect(peer_data->peer, 0);
+    peers.remove_peer(peer_id);
 
     INFO("Peer " + std::to_string(peer_id) + " disconnected");
     return std::async(std::launch::deferred, [] { return true; });
@@ -81,20 +93,27 @@ std::future<bool> Server::disconnect_peer(uint16_t peer_id) {
 
 /**
  * @brief Disconnects all peers from the server.
- * @return A future that resolves to true if all disconnections were successful, false otherwise.
+ * @return A future that resolves to true if all disconnections were successful.
  */
 std::future<bool> Server::disconnect_all() {
-    // TO BE IMPLEMENTED FULLY
-
-    // FOR NOW, clear the peerlist
+    for (const auto& peer_entry : peers.get_all_peers()) {
+        if (peer_entry.peer) {
+            enet_peer_disconnect(peer_entry.peer, 0);
+        }
+    }
     peers.clear();
+    pending_connections.clear();
 
     INFO("All peers disconnected");
     return std::async(std::launch::deferred, [] { return true; });
 }
 
+// ============================================================================
+// PACKET SENDING
+// ============================================================================
+
 /**
- * @brief Sends a packet to a specific peer.
+ * @brief Sends a packet to a specific peer by ID.
  * @param packet The packet to send.
  * @param peer_id The server-side ID of the peer to send the packet to.
  * @return true if the packet was sent successfully, false otherwise.
@@ -102,11 +121,11 @@ std::future<bool> Server::disconnect_all() {
 bool Server::send_packet(Packet& packet, uint16_t peer_id) {
     TRACE("Sending packet " + PacketRegistry::getPacketName(packet.header.type) + " to peer " + std::to_string(peer_id));
 
-	std::optional<PeerEntry> opt_target_peer = peers.get_peer_by_id(peer_id);
+    std::optional<PeerEntry> opt_target_peer = peers.get_peer_by_id(peer_id);
     if (!opt_target_peer.has_value()) {
         ERROR("Peer with ID " + std::to_string(peer_id) + " not found in peerlist");
         return false;
-	}
+    }
 
     if (opt_target_peer->peer == nullptr) {
         ERROR("Failed to find ENetPeer* for peer ID " + std::to_string(peer_id));
@@ -114,6 +133,23 @@ bool Server::send_packet(Packet& packet, uint16_t peer_id) {
     }
 
     return NetworkUser::send_packet(packet.to_enet_packet(), opt_target_peer->peer);
+}
+
+/**
+ * @brief Sends a packet directly to an ENetPeer (for pending connections not yet in peerlist).
+ * @param packet The packet to send.
+ * @param peer The ENetPeer to send to.
+ * @return true if the packet was sent successfully, false otherwise.
+ */
+bool Server::send_packet_to_peer(Packet& packet, ENetPeer* peer) {
+    TRACE("Sending packet " + PacketRegistry::getPacketName(packet.header.type) + " to ENetPeer");
+    
+    if (peer == nullptr) {
+        ERROR("Cannot send packet to null peer");
+        return false;
+    }
+
+    return NetworkUser::send_packet(packet.to_enet_packet(), peer);
 }
 
 /**
@@ -128,7 +164,6 @@ bool Server::broadcast_packet(Packet& packet, const std::optional<uint16_t>& exc
 
     bool all_sent = true;
     for (const auto& peer_data : peers.get_all_peers()) {
-        // Skip the excluded peer if specified
         if (exclude_peer_id.has_value() && peer_data.data.server_side_id == exclude_peer_id.value()) {
             continue;
         }
@@ -141,6 +176,10 @@ bool Server::broadcast_packet(Packet& packet, const std::optional<uint16_t>& exc
 
     return all_sent;
 }
+
+// ============================================================================
+// UPDATE LOOP
+// ============================================================================
 
 /**
  * @brief Starts the server's networking update loop.
@@ -157,9 +196,7 @@ void Server::start() {
     }
 
     NetworkUser::start();
-
     INFO("Server networking loop started");
-    // Trigger server networking loop start event
 }
 
 /**
@@ -172,20 +209,29 @@ void Server::stop() {
     }
 
     NetworkUser::stop();
-
     INFO("Server networking loop stopped");
-    // Trigger server networking loop stop event
 }
 
 /**
  * @brief Executes a single update cycle for the server, processing incoming events and packets.
  */
 void Server::update() {
+    // Check for timed out pending connections
+    check_pending_connection_timeouts();
+    
     ENetEvent event;
     while (enet_host_service(host, &event, 0) > 0) {
         switch (event.type) {
             case ENET_EVENT_TYPE_CONNECT: {
                 INFO("A new client connected from " + NetUtils::get_ip_string(event.peer->address));
+                
+                // Add to pending connections - waiting for ConnectionInitiation packet
+                pending_connections[event.peer] = {
+                    event.peer,
+                    std::chrono::steady_clock::now()
+                };
+                
+                // Trigger event for external listeners
                 ServerEvents::ConnectionEventData data(event);
                 ServerEvents::ConnectionEvent::trigger(data);
                 break;
@@ -199,6 +245,14 @@ void Server::update() {
 
             case ENET_EVENT_TYPE_DISCONNECT: {
                 INFO("A client disconnected");
+                
+                // Remove from pending connections if applicable
+                pending_connections.erase(event.peer);
+                
+                // Remove from peerlist if applicable
+                peers.remove_peer(event.peer);
+                
+                // Trigger event for external listeners
                 ServerEvents::DisconnectEventData data(event);
                 ServerEvents::DisconnectEvent::trigger(data);
                 break;
@@ -206,6 +260,14 @@ void Server::update() {
 
             case ENET_EVENT_TYPE_DISCONNECT_TIMEOUT: {
                 INFO("A client disconnected due to timeout");
+                
+                // Remove from pending connections if applicable
+                pending_connections.erase(event.peer);
+                
+                // Remove from peerlist if applicable
+                peers.remove_peer(event.peer);
+                
+                // Trigger event for external listeners
                 ServerEvents::DisconnectTimeoutEventData data(event);
                 ServerEvents::DisconnectTimeoutEvent::trigger(data);
                 break;
@@ -217,3 +279,138 @@ void Server::update() {
     }
 }
 
+// ============================================================================
+// CONNECTION FLOW HANDLERS
+// ============================================================================
+
+/**
+ * @brief Handles a ConnectionInitiation packet from a client.
+ * @param peer The ENetPeer that sent the packet.
+ * @param requested_username The username requested by the client.
+ */
+void Server::handle_connection_initiation(ENetPeer* peer, const std::string& requested_username) {
+    INFO("Received ConnectionInitiation from peer, requested username: " + requested_username);
+    
+    // Check if this peer is in pending connections
+    auto pending_it = pending_connections.find(peer);
+    if (pending_it == pending_connections.end()) {
+        WARNING("Received ConnectionInitiation from peer not in pending connections");
+        return;
+    }
+    
+    // Remove from pending connections
+    pending_connections.erase(pending_it);
+    
+    // Check if we can accept new connections
+    if (!can_accept_new_connection()) {
+        INFO("Rejecting connection: server is full or closed");
+        auto refusal_packet = ConnectionRefusalPacket("Server is full or not accepting new connections");
+        send_packet_to_peer(refusal_packet, peer);
+        enet_peer_disconnect_later(peer, 0);
+        return;
+    }
+    
+    // Generate unique username
+    std::string final_username = get_unique_username(requested_username);
+    if (final_username != requested_username) {
+        INFO("Username '" + requested_username + "' taken, assigned '" + final_username + "'");
+    }
+    
+    // Assign peer ID
+    uint16_t peer_id = next_peer_id++;
+    
+    // Create UserData for this peer
+    UserData user_data;
+    user_data.server_side_id = peer_id;
+    user_data.username = final_username;
+    user_data.is_host = (peers.get_all_peers().empty()); // First peer is host
+    user_data.ip_address = NetUtils::get_ip_string(peer->address);
+    user_data.connected_at = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::system_clock::now().time_since_epoch()).count();
+    user_data.last_packet_time = user_data.connected_at;
+    user_data.status = UserStatus::CONNECTED;
+    
+    // Add to peerlist
+    peers.add_peer(peer, user_data);
+    
+    // Send ConnectionConfirmation with assigned ID
+    auto confirm_packet = ConnectionConfirmationPacket(peer_id);
+    send_packet_to_peer(confirm_packet, peer);
+    
+    // Send ServerDataUpdate to all peers (including the new one)
+    auto update_packet = ServerDataUpdatePacket(get_peers_map(), server_info);
+    broadcast_packet(update_packet);
+    
+    INFO("Peer " + std::to_string(peer_id) + " (" + final_username + ") fully connected");
+}
+
+// ============================================================================
+// HELPER METHODS
+// ============================================================================
+
+/**
+ * @brief Checks for and handles timed out pending connections.
+ */
+void Server::check_pending_connection_timeouts() {
+    auto now = std::chrono::steady_clock::now();
+    
+    std::vector<ENetPeer*> timed_out_peers;
+    
+    for (const auto& [peer, pending] : pending_connections) {
+        if (now - pending.connect_time > PENDING_CONNECTION_TIMEOUT) {
+            timed_out_peers.push_back(peer);
+        }
+    }
+    
+    for (ENetPeer* peer : timed_out_peers) {
+        WARNING("Pending connection timed out - no ConnectionInitiation received within 60 seconds");
+        pending_connections.erase(peer);
+        enet_peer_disconnect_now(peer, 0);
+    }
+}
+
+/**
+ * @brief Generates a unique username, adding suffix if necessary.
+ * @param requested_username The originally requested username.
+ * @return A unique username (possibly with _1, _2, etc. suffix).
+ */
+std::string Server::get_unique_username(const std::string& requested_username) {
+    std::string base_username = requested_username;
+    std::string final_username = base_username;
+    int suffix = 1;
+    
+    while (peers.get_peer_by_username(final_username).has_value()) {
+        final_username = base_username + "_" + std::to_string(suffix);
+        suffix++;
+    }
+    
+    return final_username;
+}
+
+/**
+ * @brief Checks if the server can accept a new connection.
+ * @return true if new connections are allowed, false otherwise.
+ */
+bool Server::can_accept_new_connection() const {
+    if (server_info.closed) {
+        return false;
+    }
+    
+    if (peers.get_all_peers().size() >= server_info.max_players) {
+        return false;
+    }
+    
+    return true;
+}
+
+/**
+ * @brief Gets the current peers as an unordered_map for packet serialization.
+ * @return Map of peer ID to UserData.
+ */
+std::unordered_map<uint16_t, UserData> Server::get_peers_map() const {
+    std::unordered_map<uint16_t, UserData> result;
+    for (const auto& entry : peers.get_all_peers()) {
+        result[entry.data.server_side_id] = entry.data;
+    }
+    return result;
+}

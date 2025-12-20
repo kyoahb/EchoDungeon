@@ -8,7 +8,8 @@ public:
 
 	ClientPeerlist() = default;
 
-	void clear(); // Clear the peerlist (used on disconnect)
+	void clear(); // Clear the peerlist (keeps local_server_side_id)
+	void reset(); // Full reset - clear peers AND reset local_server_side_id
 
 	void add_peer(UserData user); // Add a peer to the peerlist
 
