@@ -21,19 +21,19 @@ Client::Client(const std::string& username) : NetworkUser(), peers(ClientPeerlis
 
 	// Register event callbacks for connection flow packets
 	
-	ClientEvents::ConnectionConfirmationEvent::register_callback(
+	on_connection_confirmation_callback = ClientEvents::ConnectionConfirmationEvent::register_callback(
 		[this](const ClientEvents::ConnectionConfirmationEventData& data) {
 			handle_connection_confirmation(data.packet.client_assigned_id);
 		}
 	);
 	
-	ClientEvents::ConnectionRefusalEvent::register_callback(
+	on_connection_refusal_callback = ClientEvents::ConnectionRefusalEvent::register_callback(
 		[this](const ClientEvents::ConnectionRefusalEventData& data) {
 			handle_connection_refusal(data.packet.refusal_reason);
 		}
 	);
 	
-	ClientEvents::ServerDataUpdateEvent::register_callback(
+	on_server_data_update_callback = ClientEvents::ServerDataUpdateEvent::register_callback(
 		[this](const ClientEvents::ServerDataUpdateEventData& data) {
 			handle_server_data_update(data.packet.current_peers, data.packet.server_info);
 		}
@@ -41,6 +41,11 @@ Client::Client(const std::string& username) : NetworkUser(), peers(ClientPeerlis
 }
 
 Client::~Client() {
+	// Unregister event callbacks
+	ClientEvents::ConnectionConfirmationEvent::unregister_callback(on_connection_confirmation_callback);
+	ClientEvents::ConnectionRefusalEvent::unregister_callback(on_connection_refusal_callback);
+	ClientEvents::ServerDataUpdateEvent::unregister_callback(on_server_data_update_callback);
+
 	// Disconnect patiently
 	if (is_connected()) {
 		disconnect().get();
@@ -279,16 +284,53 @@ std::future<ConnectionResult> Client::connect(const std::string& ip, uint16_t po
 	return connection_promise->get_future();
 }
 
+/**
+* @brief Resets the client state and peerlist.
+*/
+void Client::reset() {
+	// Reset connection state
+	connection_state = ClientConnectionState::DISCONNECTED;
+
+	// Clear peerlist
+	peers.clear();
+	peers.server_peer = nullptr;
+	peers.set_local_server_side_id(0);
+
+	// Reset server info
+	connected_server_info = OpenServer();
+
+	// If there's a pending connection promise, fail it
+	if (connection_promise.has_value()) {
+		connection_promise->set_value({ false, "Client reset" });
+		connection_promise.reset();
+	}
+}
+
 /*
 * @brief Patiently disconnects the client from the server, waiting for confirmation.
 * @return true if the disconnection was successful, false otherwise.
 */
-std::future<bool> Client::disconnect() {
-	// FOR NOW, call force_disconnect
-	bool status = force_disconnect();
+std::future<bool> Client::disconnect(const std::string& reason) {
+	return std::async(std::launch::deferred, [this, reason]() {
+		if (!is_connected()) {
+			WARNING("Client is not connected, cannot disconnect");
+			return false;
+		}
+	
+		// Send a disconnect info packet
+		auto packet = DisconnectInfoPacket(reason);
+		send_packet(packet);
 
-	INFO("Successfully disconnected from server");
-	return std::async(std::launch::deferred, [status] { return status; });
+		// Send ENetDisconnection request
+		enet_peer_disconnect(peers.server_peer, 0);
+		enet_host_flush(host);
+
+		// Reset data
+		reset();
+
+		INFO("Client disconnected from server");
+		return true;
+		});
 }
 
 /*
@@ -302,15 +344,7 @@ bool Client::force_disconnect() {
 	}
 
 	enet_peer_disconnect_now(peers.server_peer, 0);
-	peers.server_peer = nullptr;
-	peers.clear();
-	connection_state = ClientConnectionState::DISCONNECTED;
-	
-	// If there's a pending connection promise, fail it
-	if (connection_promise.has_value()) {
-		connection_promise->set_value({false, "Force disconnected"});
-		connection_promise.reset();
-	}
+	reset();
 	
 	INFO("Client forcefully disconnected from server");
 	return true;

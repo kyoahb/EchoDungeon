@@ -3,7 +3,8 @@
 
 // Struct defining a running server
 struct OpenServer {
-	std::string address = ""; // Server address
+	std::string address = ""; // Address the server binds on (can be 0.0.0.0)
+	std::string external_address = ""; // External server address
 	uint16_t port = 0;        // Server port
 	bool closed = false;    // Is the server denying new connections
 	std::string lobby_name = "Unnamed Lobby"; // Name of the server lobby
@@ -11,6 +12,6 @@ struct OpenServer {
 
 	template<class Archive>
 	void serialize(Archive& archive) {
-		archive(address, port, closed, lobby_name, max_players);
+		archive(address, external_address, port, closed, lobby_name, max_players);
 	}
 };

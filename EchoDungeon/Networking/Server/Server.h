@@ -25,15 +25,15 @@ public:
 	Server(const std::string& address, int port);
 	~Server();
 
-	std::future<bool> disconnect_peer(uint16_t peer_id);
-	std::future<bool> disconnect_all();
+	std::future<bool> disconnect_peer(uint16_t peer_id, const std::string& reason = "Disconnected");
+	std::future<bool> disconnect_all(const std::string& reason = "Disconnecting all peers");
 
 	bool send_packet(Packet& packet, uint16_t peer_id);
 	bool send_packet_to_peer(Packet& packet, ENetPeer* peer); // Send to ENetPeer directly (for pending connections)
 	bool broadcast_packet(Packet& packet, const std::optional<uint16_t>& exclude_peer_id = std::nullopt);
 
 	void start(); // Start the server networking loop
-	void stop();  // Stop the server networking loop
+	std::future<void> stop();  // Stop the server networking loop
 	void update(); // Update the server networking state
 
 	// Connection flow handlers
@@ -43,6 +43,9 @@ private:
 	// Pending connections awaiting ConnectionInitiation packet
 	std::unordered_map<ENetPeer*, PendingConnection> pending_connections;
 	uint16_t next_peer_id = 1; // Counter for assigning unique peer IDs
+
+	// Event callback IDs for cleanup
+	int on_connection_initiation_callback = -1;
 
 	// Helper methods
 	void check_pending_connection_timeouts();

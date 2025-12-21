@@ -37,7 +37,7 @@ public:
 	~Client();
 
 	std::future<ConnectionResult> connect(const std::string& ip, uint16_t port);
-	std::future<bool> disconnect(); 
+	std::future<bool> disconnect(const std::string& reason = "Client requested disconnection");
 	bool force_disconnect();
 
 	bool send_packet(Packet& packet);
@@ -45,6 +45,8 @@ public:
 	void start(); // Start the client networking loop
 	void stop();  // Stop the client networking loop
 	void update(); // Update the client networking state
+
+	void reset(); // Reset client state and peerlist
 
 	bool is_connected() const; // Check if the client is connected to a server
 
@@ -56,4 +58,9 @@ public:
 private:
 	// Promise for async connection result
 	std::optional<std::promise<ConnectionResult>> connection_promise;
+
+	// Event callback IDs for cleanup
+	int on_connection_confirmation_callback = -1;
+	int on_connection_refusal_callback = -1;
+	int on_server_data_update_callback = -1;
 };

@@ -33,7 +33,7 @@ void Join::update() {
 		// IP address label and input box
 		UIUtils::CentreText("IP Address");
 		ImVec2 ipaddress_size(200, 20);
-		static std::string ip_address = "255.255.255.255";
+		static std::string ip_address = "127.0.0.1";
 		UIUtils::CentrePosition(ipaddress_size);
 		UIUtils::WrapComponent("IPAddressInput", ipaddress_size, [&]() {
 			UIUtils::InputText("", &ip_address);
@@ -44,7 +44,7 @@ void Join::update() {
 		// Port label and input box
 		UIUtils::CentreText("Port");
 		ImVec2 port_size(150, 20);
-		static int port = 25565;
+		static int port = NetworkConstants::DEFAULT_PORT;
 		UIUtils::CentrePosition(port_size);
 		UIUtils::WrapComponent("PortInput", port_size, [&]() {
 			ImGui::InputInt("", &port);

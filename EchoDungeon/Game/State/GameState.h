@@ -1,5 +1,5 @@
 #pragma once
-
+#include "Game/Events/EventList.h"
 class Game; // Forward declaration to avoid circular dependency
 
 class GameState {

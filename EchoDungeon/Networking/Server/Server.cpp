@@ -5,6 +5,8 @@
 #include "Networking/Packet/Instances/ConnectionRefusal.h"
 #include "Networking/Packet/Instances/ServerDataUpdate.h"
 #include "Game/Events/EventList.h"
+#include "Networking/Packet/Instances/DisconnectInfo.h"
+#include "Networking/Packet/Instances/DisconnectKick.h"
 
 // Timeout for pending connections (1 minute)
 constexpr auto PENDING_CONNECTION_TIMEOUT = std::chrono::seconds(60);
@@ -19,6 +21,7 @@ Server::Server(const std::string& address, int port) : NetworkUser(), peers(Serv
     server_info.address = address;
     server_info.port = port;
     server_info.closed = false;
+	server_info.external_address = NetUtils::get_external_ip_string();
 
     // Setup ENetAddress
     if (enet_address_set_host(&this->address, address.c_str()) < 0) {
@@ -36,7 +39,7 @@ Server::Server(const std::string& address, int port) : NetworkUser(), peers(Serv
     }
 
     // Register event callback for ConnectionInitiation packets
-    ServerEvents::ConnectionInitiationEvent::register_callback(
+    on_connection_initiation_callback = ServerEvents::ConnectionInitiationEvent::register_callback(
         [this](const ServerEvents::ConnectionInitiationEventData& data) {
             handle_connection_initiation(data.peer, data.packet.client_preferred_username);
         }
@@ -49,6 +52,9 @@ Server::Server(const std::string& address, int port) : NetworkUser(), peers(Serv
  * @brief Destructor for Server, cleanly disconnects all peers and stops the networking loop.
  */
 Server::~Server() {
+    // Unregister event callbacks
+    ServerEvents::ConnectionInitiationEvent::unregister_callback(on_connection_initiation_callback);
+
     // Disconnect all peers patiently
     if (!peers.get_all_peers().empty()) {
         disconnect_all().get();
@@ -77,35 +83,56 @@ Server::~Server() {
  * @param peer_id The server-side ID of the peer to disconnect.
  * @return A future that resolves to true if the disconnection was successful.
  */
-std::future<bool> Server::disconnect_peer(uint16_t peer_id) {
-    std::optional<PeerEntry> peer_data = peers.get_peer_by_id(peer_id);
-    if (!peer_data.has_value()) {
-        WARNING("Peer with ID " + std::to_string(peer_id) + " not found, cannot disconnect");
-        return std::async(std::launch::deferred, [] { return false; });
-    }
+std::future<bool> Server::disconnect_peer(uint16_t peer_id, const std::string& reason) {
+    return std::async(std::launch::async, [this, peer_id, reason]() {
+        std::optional<PeerEntry> peer_data = peers.get_peer_by_id(peer_id);
+        if (!peer_data.has_value()) {
+            WARNING("Peer with ID " + std::to_string(peer_id) + " not found, cannot disconnect");
+            return false;
+        }
 
-    enet_peer_disconnect(peer_data->peer, 0);
-    peers.remove_peer(peer_id);
+        // Send a disconnect kick packet
+        auto packet = DisconnectKickPacket(reason);
+        send_packet(packet, peer_id);
 
-    INFO("Peer " + std::to_string(peer_id) + " disconnected");
-    return std::async(std::launch::deferred, [] { return true; });
+        // Disconnect a peer
+        enet_peer_disconnect(peer_data->peer, 0);
+        peers.remove_peer(peer_id);
+
+        INFO("Peer " + std::to_string(peer_id) + " kicked for reason: " + reason);
+        return true;
+    });
 }
 
 /**
  * @brief Disconnects all peers from the server.
  * @return A future that resolves to true if all disconnections were successful.
  */
-std::future<bool> Server::disconnect_all() {
+std::future<bool> Server::disconnect_all(const std::string& reason) {
+    std::vector<std::future<bool>> disconnect_futures;
+
     for (const auto& peer_entry : peers.get_all_peers()) {
         if (peer_entry.peer) {
-            enet_peer_disconnect(peer_entry.peer, 0);
+            disconnect_futures.push_back(disconnect_peer(peer_entry.data.server_side_id, reason));
         }
     }
-    peers.clear();
-    pending_connections.clear();
 
-    INFO("All peers disconnected");
-    return std::async(std::launch::deferred, [] { return true; });
+    return std::async(std::launch::async, [this, disconnect_futures = std::move(disconnect_futures)]() mutable {
+        // Wait for all disconnections to complete
+        bool all_successful = true;
+        for (auto& future : disconnect_futures) {
+            if (!future.get()) {
+                all_successful = false;
+            }
+        }
+
+        // Clear remaining data after disconnections
+        peers.clear();
+        pending_connections.clear();
+
+        INFO("All peers disconnected");
+        return all_successful;
+    });
 }
 
 // ============================================================================
@@ -202,14 +229,19 @@ void Server::start() {
 /**
  * @brief Stops the server's networking update loop.
  */
-void Server::stop() {
-    if (!is_running) {
-        WARNING("Server update loop is not running, cannot stop");
-        return;
-    }
+std::future<void> Server::stop() {
+    return std::async(std::launch::async, [this]() {
+        if (!is_running) {
+            WARNING("Server update loop is not running, cannot stop");
+            return;
+        }
 
-    NetworkUser::stop();
-    INFO("Server networking loop stopped");
+        // Disconnect all users patiently
+        disconnect_all("Server shutting down").get();
+
+        NetworkUser::stop();
+        INFO("Server networking loop stopped");
+    });
 }
 
 /**
@@ -251,6 +283,10 @@ void Server::update() {
                 
                 // Remove from peerlist if applicable
                 peers.remove_peer(event.peer);
+
+				// Broadcast ServerDataUpdate to all remaining peers
+				auto update_packet = ServerDataUpdatePacket(get_peers_map(), server_info);
+				broadcast_packet(update_packet);
                 
                 // Trigger event for external listeners
                 ServerEvents::DisconnectEventData data(event);
@@ -266,6 +302,10 @@ void Server::update() {
                 
                 // Remove from peerlist if applicable
                 peers.remove_peer(event.peer);
+
+                // Broadcast ServerDataUpdate to all remaining peers
+                auto update_packet = ServerDataUpdatePacket(get_peers_map(), server_info);
+                broadcast_packet(update_packet);
                 
                 // Trigger event for external listeners
                 ServerEvents::DisconnectTimeoutEventData data(event);
@@ -303,7 +343,7 @@ void Server::handle_connection_initiation(ENetPeer* peer, const std::string& req
     
     // Check if we can accept new connections
     if (!can_accept_new_connection()) {
-        INFO("Rejecting connection: server is full or closed");
+        INFO("Rejecting connection: server is full or not accepting new connections");
         auto refusal_packet = ConnectionRefusalPacket("Server is full or not accepting new connections");
         send_packet_to_peer(refusal_packet, peer);
         enet_peer_disconnect_later(peer, 0);
