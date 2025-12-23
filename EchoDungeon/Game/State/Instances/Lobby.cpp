@@ -23,7 +23,7 @@ void Lobby::on_activate() {
 
 void Lobby::on_deactivate() {
 	TRACE("Lobby deactivated");
-
+	should_quit_to_mainmenu.store(false);
 	// Unregister disconnect callback
 	ClientEvents::DisconnectEvent::unregister_callback(on_disconnect_callback);
 }
@@ -75,7 +75,12 @@ void Lobby::update() {
 			ImGui::SameLine(ImGui::GetWindowWidth() - button_size.x - 20);
 			if (ImGui::Button("Start", button_size)) {
 				TRACE("Start button pressed");
-				// TODO: Handle start game
+				
+				// TODO: sync starting game across all clients
+				game.state_manager.set_state("World");
+
+
+
 			}
 		}
 
@@ -109,7 +114,10 @@ void Lobby::update() {
 			ImGui::SameLine(ImGui::GetWindowWidth() * 0.75f);
 			static bool allow_connections = !server_info.closed;
 			if (ImGui::Checkbox("Allow new connections", &allow_connections)) {
-				// TODO: Handle allow connections toggle
+				if (game.server) {
+					game.server->server_info.closed = !allow_connections;
+					TRACE("Toggled allow connections to: " + std::string(allow_connections ? "ENABLED" : "DISABLED"));
+				}
 			}
 		}
 		

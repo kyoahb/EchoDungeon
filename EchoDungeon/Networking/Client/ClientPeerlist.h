@@ -4,7 +4,7 @@
 class ClientPeerlist {
 public:
 	ENetPeer* server_peer = nullptr; // Pointer to the server's ENetPeer
-
+	uint16_t local_server_side_id = 0; // Local user's server-side ID
 
 	ClientPeerlist() = default;
 
@@ -29,6 +29,5 @@ public:
 
 	void set_local_server_side_id(uint16_t server_side_id); // Set the local user's server-side ID
 private:
-	uint16_t local_server_side_id = 0; // Local user's server-side ID
 	std::unordered_map<uint16_t, UserData> peers; // Map of server-side ID to UserData
 };

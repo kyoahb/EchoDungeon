@@ -5,6 +5,7 @@
 #include "Networking/Packet/Instances/ConnectionRefusal.h"
 #include "Networking/Packet/Instances/ServerDataUpdate.h"
 #include "Game/Events/EventList.h"
+#include <chrono>
 
 Client::Client(const std::string& username) : NetworkUser(), peers(ClientPeerlist()) {
 	this->username = username;
@@ -123,6 +124,24 @@ void Client::stop() {
 * @brief Executes a single update cycle for the client, processing incoming events and packets.
 */
 void Client::update() {
+	// Check for connection timeout
+	if (connection_state != ClientConnectionState::DISCONNECTED && 
+		connection_state != ClientConnectionState::CONNECTED) {
+		auto now = std::chrono::steady_clock::now();
+		auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(now - connection_start_time).count();
+		
+		if (elapsed >= CONNECTION_TIMEOUT_SECONDS) {
+			WARNING("Connection attempt timed out after " + std::to_string(CONNECTION_TIMEOUT_SECONDS) + " seconds");
+			// Fail the connection promise
+			if (connection_promise.has_value()) {
+				connection_promise->set_value({ false, "Server did not respond; timed out" });
+				connection_promise.reset();
+			}
+			// Forcefully disconnect
+			force_disconnect();
+		}
+	}
+
 	ENetEvent event;
 	while (enet_host_service(host, &event, 0) > 0) {
 		switch (event.type) {
@@ -269,6 +288,7 @@ std::future<ConnectionResult> Client::connect(const std::string& ip, uint16_t po
 	// Store the server peer
 	peers.server_peer = server_peer;
 	connection_state = ClientConnectionState::CONNECTING;
+	connection_start_time = std::chrono::steady_clock::now();
 	
 	INFO("Initiated connection to server at " + ip + ":" + std::to_string(port));
 

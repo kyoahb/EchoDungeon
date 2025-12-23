@@ -59,6 +59,10 @@ private:
 	// Promise for async connection result
 	std::optional<std::promise<ConnectionResult>> connection_promise;
 
+	// Connection timeout tracking
+	std::chrono::steady_clock::time_point connection_start_time;
+	static constexpr int CONNECTION_TIMEOUT_SECONDS = 20;
+
 	// Event callback IDs for cleanup
 	int on_connection_confirmation_callback = -1;
 	int on_connection_refusal_callback = -1;

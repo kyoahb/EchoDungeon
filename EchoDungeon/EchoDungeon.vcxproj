@@ -126,6 +126,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Assets\AssetMap.cpp" />
     <ClCompile Include="Game\Game.cpp" />
     <ClCompile Include="Game\State\GameState.cpp" />
     <ClCompile Include="Game\State\GameStateManager.cpp" />
@@ -134,6 +135,8 @@
     <ClCompile Include="Game\State\Instances\Lobby.cpp" />
     <ClCompile Include="Game\State\Instances\MainMenu.cpp" />
     <ClCompile Include="Game\State\Instances\Settings.cpp" />
+    <ClCompile Include="Game\State\Instances\World.cpp" />
+    <ClCompile Include="Game\World\Entities\Player.cpp" />
     <ClCompile Include="Imports\common.cpp" />
     <ClCompile Include="Libraries\imgui\imgui.cpp" />
     <ClCompile Include="Libraries\imgui\imgui_demo.cpp" />
@@ -153,10 +156,12 @@
     <ClCompile Include="Networking\Packet\PacketRegistryInit.cpp" />
     <ClCompile Include="Networking\Server\Server.cpp" />
     <ClCompile Include="Networking\Server\ServerPeerlist.cpp" />
+    <ClCompile Include="Utils\Input.cpp" />
     <ClCompile Include="Utils\Logger\Logger.cpp" />
     <ClCompile Include="Utils\UI.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Assets\AssetMap.h" />
     <ClInclude Include="Game\Events\Event.h" />
     <ClInclude Include="Game\Events\EventList.h" />
     <ClInclude Include="Game\Game.h" />
@@ -168,6 +173,8 @@
     <ClInclude Include="Game\State\Instances\Lobby.h" />
     <ClInclude Include="Game\State\Instances\MainMenu.h" />
     <ClInclude Include="Game\State\Instances\Settings.h" />
+    <ClInclude Include="Game\State\Instances\World.h" />
+    <ClInclude Include="Game\World\Entities\Player.h" />
     <ClInclude Include="Imports\common.h" />
     <ClInclude Include="Libraries\enet\enet.h" />
     <ClInclude Include="Libraries\imgui\imconfig.h" />
@@ -245,6 +252,7 @@
     <ClInclude Include="Networking\Server\Server.h" />
     <ClInclude Include="Networking\Server\ServerPeerlist.h" />
     <ClInclude Include="Networking\User\UserData.h" />
+    <ClInclude Include="Utils\Input.h" />
     <ClInclude Include="Utils\Logger\Logger.h" />
     <ClInclude Include="Utils\NetUtils.h" />
     <ClInclude Include="Utils\UI.h" />

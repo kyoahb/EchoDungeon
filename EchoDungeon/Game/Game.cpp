@@ -4,7 +4,9 @@
 #include "Game/State/Instances/Host.h"
 #include "Game/State/Instances/Join.h"
 #include "Game/State/Instances/Lobby.h"
+#include "Game/State/Instances/World.h"
 #include "Networking/Packet/PacketRegistry.h"
+#include "Utils/Input.h"
 
 Game::Game() : state_manager(GameStateManager()){
 
@@ -37,6 +39,7 @@ Game::Game() : state_manager(GameStateManager()){
 	state_manager.add_state("Host", std::make_shared<Host>(*this));
 	state_manager.add_state("Join", std::make_shared<Join>(*this));
 	state_manager.add_state("Lobby", std::make_shared<Lobby>(*this));
+	state_manager.add_state("World", std::make_shared<World>(*this));
 
 	state_manager.set_state("MainMenu"); // Set initial state
 
@@ -62,7 +65,8 @@ void Game::begin() {
  * @brief Executed every frame to update the game state.
  */
 void Game::update() {
-	// Execute pre-frame updates
+	// Update input manager
+	Input::update();
 
 	// Draw
 	BeginDrawing(); // Tell Raylib we are going to draw
