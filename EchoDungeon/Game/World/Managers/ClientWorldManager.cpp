@@ -59,13 +59,13 @@ void ClientWorldManager::clear() {
     objects.clear();
 }
 
-// === Local Player ===
+
 
 Player* ClientWorldManager::get_local_player() {
     return get_player(client->peers.local_server_side_id);
 }
 
-// === Player Management ===
+
 
 void ClientWorldManager::add_player(const Player& player) {
     players[player.id] = player;
@@ -94,7 +94,7 @@ Player* ClientWorldManager::get_player(uint16_t peer_id) {
     return (it != players.end()) ? &it->second : nullptr;
 }
 
-// === Object Management ===
+
 
 void ClientWorldManager::add_object(const Object& object) {
     objects[object.id] = object;
@@ -116,7 +116,7 @@ Object* ClientWorldManager::get_object(uint16_t object_id) {
     return (it != objects.end()) ? &it->second : nullptr;
 }
 
-// === Network Synchronization ===
+
 
 void ClientWorldManager::apply_world_snapshot(const WorldSnapshotPacket& snapshot) {
     clear();
@@ -161,7 +161,7 @@ void ClientWorldManager::send_local_player_input() {
     last_sent_transform = local_player->transform;
 }
 
-// === Camera ===
+
 
 void ClientWorldManager::update_camera(float delta_time) {
     Player* local_player = get_local_player();
@@ -175,7 +175,7 @@ void ClientWorldManager::update_camera(float delta_time) {
     camera.position = player_pos + offset;
 }
 
-// === Helper Methods ===
+
 
 void ClientWorldManager::process_local_player_input(float delta_time) {
     Player* local_player = get_local_player();

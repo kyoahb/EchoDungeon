@@ -24,28 +24,23 @@ public:
     ServerWorldManager(std::shared_ptr<Server> server);
     ~ServerWorldManager() = default;
 
-    // === Lifecycle ===
     void update(float delta_time);  // Called every server tick
     void clear();  // Clear all entities (e.g., when changing levels)
 
-    // === Player Management ===
     void add_player(uint16_t peer_id, const std::string& name);
     void remove_player(uint16_t peer_id);
     Player* get_player(uint16_t peer_id);
     const std::unordered_map<uint16_t, Player>& get_all_players() const { return players; }
     
-    // === Object Management ===
     uint16_t spawn_object(ObjectType type, const std::string& asset_id, const raylib::Vector3& position);
     void destroy_object(uint16_t object_id);
     Object* get_object(uint16_t object_id);
     const std::unordered_map<uint16_t, Object>& get_all_objects() const { return objects; }
 
-    // === Network Synchronization ===
     void broadcast_world_snapshot();  // Send full state to all clients
     void send_world_snapshot(ENetPeer* peer);  // Send full state to specific client
     void broadcast_entity_updates();  // Send delta updates (called every tick)
-    
-    // === Input Validation ===
+
     void handle_player_input(uint16_t peer_id, const ObjectTransform& input_transform);
 
 private:

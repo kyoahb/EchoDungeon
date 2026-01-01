@@ -27,7 +27,7 @@ public:
    void Draw(const raylib::Camera3D& camera) const;
 
    template <typename Archive>
-   void archive(Archive& archive) const {
+   void save(Archive& archive) const {
        uint8_t type_value = static_cast<uint8_t>(type);
        archive(id, asset_id, type_value, transform);
    }

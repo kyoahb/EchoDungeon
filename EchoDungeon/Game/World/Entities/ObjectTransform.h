@@ -66,7 +66,9 @@ public:
 
 	template <class Archive>
 	void serialize(Archive& archive) {
-		archive(position, rotation, scale, velocity, acceleration, has_collision, is_static, has_gravity, collision_layer, elasticity);
+		archive(position, rotation, scale, velocity, acceleration, 
+			has_collision, is_static, has_gravity, collision_layer, 
+			elasticity);
 	}
 
 

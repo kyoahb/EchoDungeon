@@ -22,34 +22,28 @@ public:
     ClientWorldManager(std::shared_ptr<Client> client);
     ~ClientWorldManager() = default;
 
-    // === Lifecycle ===
     void update(float delta_time);  // Called every frame
     void draw_3d();  // Draw 3D entities
     void draw_2d();  // Draw 2D UI elements
     void clear();  // Clear all entities
 
-    // === Local Player ===
     Player* get_local_player();
     
-    // === Player Management ===
     void add_player(const Player& player);
     void remove_player(uint16_t peer_id);
     void update_player(uint16_t peer_id, const ObjectTransform& transform, float health);
     Player* get_player(uint16_t peer_id);
     const std::unordered_map<uint16_t, Player>& get_all_players() const { return players; }
     
-    // === Object Management ===
     void add_object(const Object& object);
     void remove_object(uint16_t object_id);
     void update_object(uint16_t object_id, const ObjectTransform& transform);
     Object* get_object(uint16_t object_id);
 
-    // === Network Synchronization ===
     void apply_world_snapshot(const WorldSnapshotPacket& snapshot);
     void apply_entity_updates(const std::vector<EntityUpdateData>& updates);
     void send_local_player_input();  // Send local player transform to server
 
-    // === Camera ===
     raylib::Camera3D& get_camera() { return camera; }
     void update_camera(float delta_time);  // Update camera to follow local player
 

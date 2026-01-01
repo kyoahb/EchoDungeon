@@ -27,7 +27,6 @@ void ServerWorldManager::clear() {
     next_object_id = 0;
 }
 
-// === Player Management ===
 
 void ServerWorldManager::add_player(uint16_t peer_id, const std::string& name) {
     Player player(peer_id, false, name);
@@ -52,7 +51,6 @@ Player* ServerWorldManager::get_player(uint16_t peer_id) {
     return (it != players.end()) ? &it->second : nullptr;
 }
 
-// === Object Management ===
 
 uint16_t ServerWorldManager::spawn_object(ObjectType type, const std::string& asset_id, const raylib::Vector3& position) {
     uint16_t object_id = next_object_id++;
@@ -81,7 +79,7 @@ Object* ServerWorldManager::get_object(uint16_t object_id) {
     return (it != objects.end()) ? &it->second : nullptr;
 }
 
-// === Network Synchronization ===
+
 
 void ServerWorldManager::broadcast_world_snapshot() {
     WorldSnapshotPacket packet(players, objects);
@@ -127,7 +125,7 @@ void ServerWorldManager::collect_entity_updates(std::vector<EntityUpdateData>& u
     }
 }
 
-// === Input Validation ===
+
 
 void ServerWorldManager::handle_player_input(uint16_t peer_id, const ObjectTransform& input_transform) {
     Player* player = get_player(peer_id);
@@ -142,7 +140,7 @@ void ServerWorldManager::handle_player_input(uint16_t peer_id, const ObjectTrans
 
 bool ServerWorldManager::validate_player_transform(const Player& player, const ObjectTransform& new_transform) {
     // TODO: Add validation logic
-    // - Check speed (prevent teleporting)
+    // - Check speed
     // - Check collision with world geometry
     // - Check bounds (prevent going out of map)
     
