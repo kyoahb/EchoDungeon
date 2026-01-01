@@ -44,6 +44,11 @@ Server::Server(const std::string& address, int port) : NetworkUser(), peers(Serv
             handle_connection_initiation(data.peer, data.packet.client_preferred_username);
         }
     );
+    on_general_information_update_callback = ServerEvents::GeneralInformationUpdateEvent::register_callback(
+        [this](const ServerEvents::GeneralInformationUpdateEventData& data) {
+            handle_general_information_update(data.peer, data.packet);
+        }
+    );
 
     INFO("Server created at " + address + ":" + std::to_string(port));
 }
@@ -54,6 +59,7 @@ Server::Server(const std::string& address, int port) : NetworkUser(), peers(Serv
 Server::~Server() {
     // Unregister event callbacks
     ServerEvents::ConnectionInitiationEvent::unregister_callback(on_connection_initiation_callback);
+	ServerEvents::GeneralInformationUpdateEvent::unregister_callback(on_general_information_update_callback);
 
     // Disconnect all peers patiently
     if (!peers.get_all_peers().empty()) {
@@ -369,6 +375,7 @@ void Server::handle_connection_initiation(ENetPeer* peer, const std::string& req
         std::chrono::system_clock::now().time_since_epoch()).count();
     user_data.last_packet_time = user_data.connected_at;
     user_data.status = UserStatus::CONNECTED;
+	user_data.current_state = "Lobby"; // Just assume Lobby on connect
     
     // Add to peerlist
     peers.add_peer(peer, user_data);
@@ -453,4 +460,25 @@ std::unordered_map<uint16_t, UserData> Server::get_peers_map() const {
         result[entry.data.server_side_id] = entry.data;
     }
     return result;
+}
+
+// ============================================================================
+// MISC PACKET HANDLERS
+// ============================================================================
+
+/**
+ * @brief Handles a GeneralInformationUpdate packet from a client.
+ * @param peer The ENetPeer that sent the packet.
+ * @param data The GeneralInformationUpdate packet data.
+ */
+void Server::handle_general_information_update(ENetPeer* peer, const GeneralInformationUpdatePacket& packet) {
+    std::optional<PeerEntry> opt_peer_entry = peers.get_peer_by_enet(peer);
+    if (!opt_peer_entry.has_value()) {
+        WARNING("Received GeneralInformationUpdate from unknown peer");
+        return;
+    }
+    // Update the peer's current state
+    PeerEntry& peer_entry = opt_peer_entry.value();
+    peer_entry.data.current_state = packet.current_state;
+    TRACE("Updated peer " + std::to_string(peer_entry.data.server_side_id) + " current state to " + packet.current_state);
 }

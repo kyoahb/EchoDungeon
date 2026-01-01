@@ -39,6 +39,7 @@ Client::Client(const std::string& username) : NetworkUser(), peers(ClientPeerlis
 			handle_server_data_update(data.packet.current_peers, data.packet.server_info);
 		}
 	);
+
 }
 
 Client::~Client() {

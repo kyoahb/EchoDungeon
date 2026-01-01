@@ -7,6 +7,7 @@
 #include <optional>
 #include <chrono>
 #include "OpenServer.h"
+#include "Game/Events/EventList.h"
 
 // Struct for tracking pending connections (awaiting ConnectionInitiation)
 struct PendingConnection {
@@ -39,6 +40,8 @@ public:
 	// Connection flow handlers
 	void handle_connection_initiation(ENetPeer* peer, const std::string& requested_username);
 
+	// Misc packet handlers
+	void handle_general_information_update(ENetPeer* peer, const GeneralInformationUpdatePacket& packet);
 private:
 	// Pending connections awaiting ConnectionInitiation packet
 	std::unordered_map<ENetPeer*, PendingConnection> pending_connections;
@@ -46,6 +49,7 @@ private:
 
 	// Event callback IDs for cleanup
 	int on_connection_initiation_callback = -1;
+	int on_general_information_update_callback = -1;
 
 	// Helper methods
 	void check_pending_connection_timeouts();

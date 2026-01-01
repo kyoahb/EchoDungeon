@@ -27,6 +27,9 @@ Game::Game() : state_manager(GameStateManager()){
 	window = raylib::Window(screenWidth, screenHeight, "Echo Dungeon");
 	rlImGuiSetup(true); // Setup Raylib ImGUI connection
 
+	// Load all models pre-emptively
+	AssetMap::load();
+
 
 	// Set default font to Arial, size 24
 	ImGuiIO& io = ImGui::GetIO();
@@ -80,4 +83,12 @@ void Game::update() {
 
 	EndDrawing(); // Tell Raylib we are done drawing
 
+}
+
+/**
+ * @brief Check if the local client is hosting a server.
+ * @return true if hosting, false otherwise.
+ */
+bool Game::is_hosting() {
+	return client && server;
 }

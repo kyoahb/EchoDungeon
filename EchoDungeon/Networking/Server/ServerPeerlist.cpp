@@ -117,3 +117,19 @@ std::optional<PeerEntry> ServerPeerlist::get_peer_by_username(const std::string&
     }
     return std::nullopt;
 }
+
+
+/**
+ * @brief Gets a peer by username.
+ * @param peer The ENetPeer pointer of the peer.
+ * @return An optional containing the PeerEntry if found, or empty otherwise.
+ */
+std::optional<PeerEntry> ServerPeerlist::get_peer_by_enet(ENetPeer* peer) const {
+    auto it = std::find_if(peers.begin(), peers.end(), [&](const auto& pair) {
+        return pair.second.peer == peer;
+    });
+    if (it != peers.end()) {
+        return it->second;
+    }
+    return std::nullopt;
+}

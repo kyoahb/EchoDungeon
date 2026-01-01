@@ -19,7 +19,7 @@ public:
 
 	void begin(); // Start the game and enter the main update loop
 	void update(); // Update the game state
-
+	bool is_hosting(); // Whether the local client is a 'host' client
 };
 
 

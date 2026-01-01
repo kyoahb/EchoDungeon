@@ -4,75 +4,64 @@
 
 World::World(Game& game) : GameState(game) {
 	// Player is created in on_activate when client is available
-	camera.position = { 0.0f, 10.0f, 0.0f };  // Camera above, looking down
-	camera.target = { 0.0f, 0.0f, 0.0f };      // Looking at origin
-	camera.up = { 0.0f, 0.0f, -1.0f };         // "Up" is -Z for top-down (so +Y on screen is -Z in world)
-	camera.fovy = 70.0f;                        // Field of view
-	camera.projection = CAMERA_PERSPECTIVE;    // Camera projection mode
 }
 
 void World::on_activate() {
+	// Pass
 	TRACE("World activated");
-	local_player = std::make_unique<Player>(
-		game.client ? game.client->peers.local_server_side_id : 0,
-		true,
-		game.settings.username);
+
+	// Create ClientWorldManager
+	c_world_manager = std::make_unique<ClientWorldManager>(game.client);
+
+	if (game.is_hosting()) {
+		
+		// Implement server world manager
+		s_world_manager = std::make_unique<ServerWorldManager>(game.server);
+
+		// Setup server events
+
+
+		TRACE("ServerWorldManager created");
+	}
 }
 
 void World::on_deactivate() {
 	TRACE("World deactivated");
+	// Clear and destroy ClientWorldManager
+	if (c_world_manager) {
+		c_world_manager->clear();
+		c_world_manager.reset();
+		c_world_manager = nullptr;
+	}
 }
 
 void World::update() {
-	if (!local_player) {
-		ERROR("No local player in World state update?");
+	if (!c_world_manager) return;
+
+	if (c_world_manager->get_local_player() == nullptr) {
+		// The client has not received a server loading packet yet
+		DrawText("Loading world...", 10, 10, 20, BLACK);
 		return;
 	}
-
-	// Handle player movement
-	raylib::Vector3 movement = { 0.0f, 0.0f, 0.0f };
-	const int move_speed = 2; // Units per second
-	if (Input::is_key_down(KEY_W)) {
-		movement.z -= 1; // Move forward (negative Z)
-	}
-	if (Input::is_key_down(KEY_S)) {
-		movement.z += 1; // Move backward (positive Z)
-	}
-	if (Input::is_key_down(KEY_A)) {
-		movement.x -= 1; // Move left (negative X)
-	}
-	if (Input::is_key_down(KEY_D)) {
-		movement.x += 1; // Move right (positive X)
-	}
-
-	// Multiply by DeltaTime AND normalize to ensure consistent movement speed
-	local_player->move(movement.Normalize() * move_speed * GetFrameTime());
-	// Move the camera to follow the player. Only the player's X and Z positions change
-	camera.position.x = local_player->position.x;
-	camera.position.z = local_player->position.z;
-	camera.target.x = local_player->position.x;
-	camera.target.z = local_player->position.z;
+	// Update ClientWorldManager
+	// This updates input, camera, sends input packets 
+	c_world_manager->update(GetFrameTime());
 
 
-	
+	c_world_manager->get_camera().BeginMode();
+	// Do all 3D Rendering
 
-	// Begin 3D rendering with top-down camera
-	camera.BeginMode();
+	c_world_manager->draw_3d();
 
-	// Draw a grid for reference
-	DrawGrid(50, 1.0f);
-
-	local_player->draw3D(); // Draw the player model in 3D
+	// End 3D Rendering
+	c_world_manager->get_camera().EndMode();
 
 
-	camera.EndMode();
-
-	// Draw 2D UI elements after 3D mode ends
-	local_player->drawUI(camera); // Draw name labels in 2D
+	// Do all 2D Rendering
+	c_world_manager->draw_2d();
 
 	// DEBUG: Draw hud info
 	DrawFPS(10, 0);
-	DrawText(("Player position:" + local_player->position.ToString()).c_str(), 10, 40, 20, BLACK);
 
 	const std::vector<int>& keys = Input::get_keys_down();
 	std::string keysText = "Pressed keys: ";
@@ -80,4 +69,6 @@ void World::update() {
 		keysText += Input::get_key_name(key) + ", ";
 	}
 	DrawText(keysText.c_str(), 10, 80, 20, BLACK);
+
+	// End 2D Rendering
 }

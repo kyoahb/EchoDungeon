@@ -1,32 +1,27 @@
 #pragma once
 #include "Imports/common.h"
-
+#include "Game/World/Entities/ObjectTransform.h"
+#include "Game/World/Assets/AssetMap.h"
 class Player {
 public:
 	Player(uint16_t _id, bool _is_local, const std::string& _name);
-	Player() = default;
-	virtual ~Player() = default;
+	Player();
+	virtual ~Player() {}  // AssetImageModel handles model unloading
 
 	uint16_t id = 0; // ID linked to network entity
 	bool is_local = false; // Is this the local player?
 	std::string name = "?"; // Name rendered above the player
 
-	raylib::Vector3 position = { 0.0f, 0.0f, 0.0f }; // 3D position in the world
-	raylib::Vector3 rotation = { 0.0f, 0.0f, 0.0f }; // Rotation (Euler angles 0-360) in the world
+	ObjectTransform transform; // Player transform (position, rotation, scale)
 	float health = 100.0f; // Player health
+	std::string asset_id = "player";
 
-	void draw3D(); // Draw the player model in 3D space
-	void drawUI(const raylib::Camera3D& camera); // Draw 2D UI elements (name, health) using screen coordinates
+	void draw3D(const raylib::Camera3D& camera); // Draw the player model in 3D space
+	void draw2D(const raylib::Camera3D& camera); // Draw 2D UI elements (name, health) using screen coordinates
 	void move(const raylib::Vector3& delta); // Move the player by delta
 
 	template <typename Archive>
 	void serialize(Archive& archive) {
-		archive(id, is_local, name, position.x, position.y, position.z,
-			rotation.x, rotation.y, rotation.z, health);
+		archive(id, is_local, name, transform, health, asset_id);
 	}		
-
-private:
-	// Setup player assets later
-
-
 };

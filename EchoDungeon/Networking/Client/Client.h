@@ -54,7 +54,6 @@ public:
 	void handle_connection_confirmation(uint16_t assigned_id);
 	void handle_connection_refusal(const std::string& reason);
 	void handle_server_data_update(const std::unordered_map<uint16_t, UserData>& peers_data, const OpenServer& server_info);
-
 private:
 	// Promise for async connection result
 	std::optional<std::promise<ConnectionResult>> connection_promise;

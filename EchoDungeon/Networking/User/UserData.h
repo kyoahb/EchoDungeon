@@ -18,9 +18,10 @@ struct UserData {
 	uint64_t connected_at = 0; // Timestamp of when the user connected (ms since epoch)
 	uint64_t last_packet_time = 0; // Timestamp of the last packet received from this user (ms since epoch)
 	UserStatus status = UserStatus::DISCONNECTED; // Current status of the user
+	std::string current_state = "Unknown"; // Current state the user is in
 
 	template<class Archive>
 	void serialize(Archive& archive) {
-		archive(server_side_id, username, is_host, ip_address, connected_at, last_packet_time, status);
+		archive(server_side_id, username, is_host, ip_address, connected_at, last_packet_time, status, current_state);
 	}
 };

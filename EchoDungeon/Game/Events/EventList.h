@@ -6,7 +6,14 @@
 #include "Networking/Packet/Instances/DisconnectInfo.h"
 #include "Networking/Packet/Instances/DisconnectKick.h"
 #include "Networking/Packet/Instances/ServerDataUpdate.h"
-
+#include "Networking/Packet/Instances/GeneralInformationUpdate.h"
+#include "Networking/Packet/Instances/StateChange.h"
+#include "Networking/Packet/Instances/WorldSnapshot.h"
+#include "Networking/Packet/Instances/EntityUpdate.h"
+#include "Networking/Packet/Instances/EntitySpawn.h"
+#include "Networking/Packet/Instances/EntityDestroy.h"
+#include "Networking/Packet/Instances/PlayerSpawn.h"
+#include "Networking/Packet/Instances/PlayerInput.h"
 
 #define SERVER_PACKET_EVENT_DECLARATION(BaseName) \
     class BaseName##EventData : public BaseEventData { \
@@ -39,8 +46,14 @@ namespace ServerEvents {
 	// DisconnectionInfo Event (Packet ID: 4)
     SERVER_PACKET_EVENT_DECLARATION(DisconnectInfo)
 
+	// GeneralInformationUpdate Event (Packet ID: 8)
+	SERVER_PACKET_EVENT_DECLARATION(GeneralInformationUpdate)
 
+	// PlayerInput Event (Packet ID: 15)
+	SERVER_PACKET_EVENT_DECLARATION(PlayerInput)
 
+    // RequestWorldSnapshot Event (Packet ID: 16)
+    SERVER_PACKET_EVENT_DECLARATION(RequestWorldSnapshot)
 
     // Pure events
 
@@ -93,6 +106,24 @@ namespace ClientEvents {
 	// UserDataUpdate Event (Packet ID: 6)
 	CLIENT_PACKET_EVENT_DECLARATION(ServerDataUpdate)
 
+	// StateChange Event (Packet ID: 7)
+	CLIENT_PACKET_EVENT_DECLARATION(StateChange)
+
+	// WorldSnapshot Event (Packet ID: 10)
+	CLIENT_PACKET_EVENT_DECLARATION(WorldSnapshot)
+
+	// EntityUpdate Event (Packet ID: 11)
+	CLIENT_PACKET_EVENT_DECLARATION(EntityUpdate)
+
+	// EntitySpawn Event (Packet ID: 12)
+	CLIENT_PACKET_EVENT_DECLARATION(EntitySpawn)
+
+	// EntityDestroy Event (Packet ID: 13)
+	CLIENT_PACKET_EVENT_DECLARATION(EntityDestroy)
+
+	// PlayerSpawn Event (Packet ID: 14)
+	CLIENT_PACKET_EVENT_DECLARATION(PlayerSpawn)
+
 
     // Pure events
 
@@ -115,4 +146,13 @@ namespace ClientEvents {
         }
     };
     using DisconnectEvent = Event<DisconnectEventData>;
+
+    // State change Event (called after this client changes state)
+	class PostStateChangeEventData : public BaseEventData {
+    public:
+        std::string new_state;
+        PostStateChangeEventData(const std::string& _new_state)
+            : new_state(_new_state) {}
+    };
+	using PostStateChangeEvent = Event<PostStateChangeEventData>;
 }

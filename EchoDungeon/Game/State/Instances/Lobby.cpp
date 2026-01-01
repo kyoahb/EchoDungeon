@@ -76,10 +76,12 @@ void Lobby::update() {
 			if (ImGui::Button("Start", button_size)) {
 				TRACE("Start button pressed");
 				
-				// TODO: sync starting game across all clients
-				game.state_manager.set_state("World");
-
-
+				// Sync state change to world with all clients
+				if (game.server) {
+					auto packet = StateChangePacket("World");
+					game.server->broadcast_packet(packet);
+				}
+				// Local client will also receive this packet and change state
 
 			}
 		}

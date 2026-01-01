@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -104,7 +104,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>C:\Users\bresk\source\repos\EchoDungeon\EchoDungeon;C:\Users\bresk\source\repos\kyoahb\EchoDungeon\EchoDungeon\Libraries\imgui;C:\Users\bresk\source\repos\kyoahb\EchoDungeon\EchoDungeon\Libraries;C:\Users\bresk\source\repos\kyoahb\EchoDungeon\EchoDungeon;C:\Users\bresk\source\repos\kyoahb\EchoDungeon\EchoDungeon\Imports;C:\Users\bresk\source\repos\EchoDungeon\EchoDungeon\Libraries\imgui;C:\Users\bresk\source\repos\EchoDungeon\EchoDungeon\Libraries;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
-      <LanguageStandard>stdcpp23</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -126,7 +126,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Assets\AssetMap.cpp" />
     <ClCompile Include="Game\Game.cpp" />
     <ClCompile Include="Game\State\GameState.cpp" />
     <ClCompile Include="Game\State\GameStateManager.cpp" />
@@ -136,7 +135,16 @@
     <ClCompile Include="Game\State\Instances\MainMenu.cpp" />
     <ClCompile Include="Game\State\Instances\Settings.cpp" />
     <ClCompile Include="Game\State\Instances\World.cpp" />
+    <ClCompile Include="Game\World\Assets\AssetImage.cpp" />
+    <ClCompile Include="Game\World\Assets\AssetImageModel.cpp" />
+    <ClCompile Include="Game\World\Assets\AssetSound.cpp" />
+    <ClCompile Include="Game\World\Entities\Object.cpp" />
     <ClCompile Include="Game\World\Entities\Player.cpp" />
+    <ClCompile Include="Game\World\Entities\ObjectTransform.cpp" />
+    <ClCompile Include="Game\World\Assets\AssetMap.cpp" />
+    <ClCompile Include="Game\World\Assets\AssetModel.cpp" />
+    <ClCompile Include="Game\World\Managers\ClientWorldManager.cpp" />
+    <ClCompile Include="Game\World\Managers\ServerWorldManager.cpp" />
     <ClCompile Include="Imports\common.cpp" />
     <ClCompile Include="Libraries\imgui\imgui.cpp" />
     <ClCompile Include="Libraries\imgui\imgui_demo.cpp" />
@@ -161,7 +169,9 @@
     <ClCompile Include="Utils\UI.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Assets\AssetMap.h" />
+    <ClInclude Include="Game\World\Assets\AssetImage.h" />
+    <ClInclude Include="Game\World\Assets\AssetImageModel.h" />
+    <ClInclude Include="Game\World\Assets\AssetMap.h" />
     <ClInclude Include="Game\Events\Event.h" />
     <ClInclude Include="Game\Events\EventList.h" />
     <ClInclude Include="Game\Game.h" />
@@ -174,7 +184,14 @@
     <ClInclude Include="Game\State\Instances\MainMenu.h" />
     <ClInclude Include="Game\State\Instances\Settings.h" />
     <ClInclude Include="Game\State\Instances\World.h" />
+    <ClInclude Include="Game\World\Assets\AssetSound.h" />
+    <ClInclude Include="Game\World\Entities\EntityType.h" />
+    <ClInclude Include="Game\World\Entities\Object.h" />
     <ClInclude Include="Game\World\Entities\Player.h" />
+    <ClInclude Include="Game\World\Entities\ObjectTransform.h" />
+    <ClInclude Include="Game\World\Assets\AssetModel.h" />
+    <ClInclude Include="Game\World\Managers\ClientWorldManager.h" />
+    <ClInclude Include="Game\World\Managers\ServerWorldManager.h" />
     <ClInclude Include="Imports\common.h" />
     <ClInclude Include="Libraries\enet\enet.h" />
     <ClInclude Include="Libraries\imgui\imconfig.h" />
@@ -245,7 +262,16 @@
     <ClInclude Include="Networking\Packet\Instances\ConnectionRefusal.h" />
     <ClInclude Include="Networking\Packet\Instances\DisconnectInfo.h" />
     <ClInclude Include="Networking\Packet\Instances\DisconnectKick.h" />
+    <ClInclude Include="Networking\Packet\Instances\EntityDestroy.h" />
+    <ClInclude Include="Networking\Packet\Instances\EntitySpawn.h" />
+    <ClInclude Include="Networking\Packet\Instances\EntityUpdate.h" />
+    <ClInclude Include="Networking\Packet\Instances\GeneralInformationUpdate.h" />
+    <ClInclude Include="Networking\Packet\Instances\PlayerInput.h" />
+    <ClInclude Include="Networking\Packet\Instances\PlayerSpawn.h" />
+    <ClInclude Include="Networking\Packet\Instances\RequestWorldSnapshot.h" />
     <ClInclude Include="Networking\Packet\Instances\ServerDataUpdate.h" />
+    <ClInclude Include="Networking\Packet\Instances\StateChange.h" />
+    <ClInclude Include="Networking\Packet\Instances\WorldSnapshot.h" />
     <ClInclude Include="Networking\Packet\Packet.h" />
     <ClInclude Include="Networking\Packet\PacketRegistry.h" />
     <ClInclude Include="Networking\Server\OpenServer.h" />
@@ -254,8 +280,13 @@
     <ClInclude Include="Networking\User\UserData.h" />
     <ClInclude Include="Utils\Input.h" />
     <ClInclude Include="Utils\Logger\Logger.h" />
+    <ClInclude Include="Utils\MathUtils.h" />
     <ClInclude Include="Utils\NetUtils.h" />
     <ClInclude Include="Utils\UI.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Docs\WorldManagerArchitecture.md" />
+    <None Include="Docs\WorldSynchronization.md" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

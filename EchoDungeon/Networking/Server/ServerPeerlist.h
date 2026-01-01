@@ -26,6 +26,7 @@ public:
 
     std::optional<PeerEntry> get_peer_by_id(uint16_t server_side_id) const; // Get a peer by server-side ID
     std::optional<PeerEntry> get_peer_by_username(const std::string& username) const; // Get a peer by username
+	std::optional<PeerEntry> get_peer_by_enet(ENetPeer* peer) const; // Get a peer by ENetPeer*
 private:
     std::unordered_map<uint16_t, PeerEntry> peers; 
     // Map of server-side ID to PeerEntry (containing ENetPeer* and UserData)

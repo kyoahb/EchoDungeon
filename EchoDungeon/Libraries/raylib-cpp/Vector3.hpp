@@ -267,6 +267,13 @@ protected:
         y = vec.y;
         z = vec.z;
     }
+
+public:
+    // Cereal serialization support
+    template<class Archive>
+    void serialize(Archive& archive) {
+        archive(x, y, z);
+    }
 };
 } // namespace raylib
 

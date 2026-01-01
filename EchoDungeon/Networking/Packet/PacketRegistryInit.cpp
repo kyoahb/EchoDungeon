@@ -5,6 +5,15 @@
 #include "Networking/Packet/Instances/DisconnectInfo.h"
 #include "Networking/Packet/Instances/DisconnectKick.h"
 #include "Networking/Packet/Instances/ServerDataUpdate.h"
+#include "Networking/Packet/Instances/GeneralInformationUpdate.h"
+#include "Networking/Packet/Instances/StateChange.h"
+#include "Networking/Packet/Instances/WorldSnapshot.h"
+#include "Networking/Packet/Instances/EntityUpdate.h"
+#include "Networking/Packet/Instances/EntitySpawn.h"
+#include "Networking/Packet/Instances/EntityDestroy.h"
+#include "Networking/Packet/Instances/PlayerSpawn.h"
+#include "Networking/Packet/Instances/PlayerInput.h"
+#include "Networking/Packet/Instances/RequestWorldSnapshot.h"
 
 #include "Game/Events/EventList.h"
 
@@ -47,10 +56,19 @@ void PacketRegistry::initializeRegistry() {
     // Client -> Server packets
     REGISTER_SERVER_PACKET(1, ConnectionInitiation);
     REGISTER_SERVER_PACKET(4, DisconnectInfo);
+	REGISTER_SERVER_PACKET(8, GeneralInformationUpdate);
+	REGISTER_SERVER_PACKET(15, PlayerInput);
+    REGISTER_SERVER_PACKET(16, RequestWorldSnapshot);
 
     // Server -> Client packets
     REGISTER_CLIENT_PACKET(2, ConnectionRefusal);
     REGISTER_CLIENT_PACKET(3, ConnectionConfirmation);
     REGISTER_CLIENT_PACKET(5, DisconnectKick);
     REGISTER_CLIENT_PACKET(6, ServerDataUpdate);
+	REGISTER_CLIENT_PACKET(7, StateChange);
+	REGISTER_CLIENT_PACKET(10, WorldSnapshot);
+	REGISTER_CLIENT_PACKET(11, EntityUpdate);
+	REGISTER_CLIENT_PACKET(12, EntitySpawn);
+	REGISTER_CLIENT_PACKET(13, EntityDestroy);
+	REGISTER_CLIENT_PACKET(14, PlayerSpawn);
 }
