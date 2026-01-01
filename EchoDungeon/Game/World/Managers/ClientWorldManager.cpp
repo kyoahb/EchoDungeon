@@ -8,8 +8,8 @@ ClientWorldManager::ClientWorldManager(std::shared_ptr<Client> client)
     // Initialize camera
     camera.position = {0.0f, 10.0f, 10.0f};
     camera.target = {0.0f, 0.0f, 0.0f};
-    camera.up = {0.0f, 1.0f, 0.0f};
-    camera.fovy = 60.0f;
+    camera.up = {0.0f, 0.0f, -1.0f};
+    camera.fovy = 70.0f;
     camera.projection = CAMERA_PERSPECTIVE;
 }
 
@@ -184,8 +184,8 @@ void ClientWorldManager::process_local_player_input(float delta_time) {
     // Get input
     raylib::Vector3 movement = {0.0f, 0.0f, 0.0f};
     
-    if (Input::is_key_down(KEY_W)) movement.z += 1.0f;
-    if (Input::is_key_down(KEY_S)) movement.z -= 1.0f;
+    if (Input::is_key_down(KEY_W)) movement.z -= 1.0f;
+    if (Input::is_key_down(KEY_S)) movement.z += 1.0f;
     if (Input::is_key_down(KEY_A)) movement.x -= 1.0f;
     if (Input::is_key_down(KEY_D)) movement.x += 1.0f;
     

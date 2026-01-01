@@ -84,11 +84,11 @@ Object* ServerWorldManager::get_object(uint16_t object_id) {
 // === Network Synchronization ===
 
 void ServerWorldManager::broadcast_world_snapshot() {
-WorldSnapshotPacket packet(players, objects);
-server->broadcast_packet(packet);
+    WorldSnapshotPacket packet(players, objects);
+    server->broadcast_packet(packet);
 }
 
-void ServerWorldManager::broadcast_world_snapshot(ENetPeer* peer) {
+void ServerWorldManager::send_world_snapshot(ENetPeer* peer) {
     WorldSnapshotPacket packet(players, objects);
     enet_peer_send(peer, 0, packet.to_enet_packet());
 }

@@ -14,6 +14,7 @@
 #include "Networking/Packet/Instances/EntityDestroy.h"
 #include "Networking/Packet/Instances/PlayerSpawn.h"
 #include "Networking/Packet/Instances/PlayerInput.h"
+#include "Networking/Packet/Instances/RequestWorldSnapshot.h"
 
 #define SERVER_PACKET_EVENT_DECLARATION(BaseName) \
     class BaseName##EventData : public BaseEventData { \

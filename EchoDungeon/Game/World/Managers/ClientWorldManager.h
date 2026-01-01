@@ -36,6 +36,7 @@ public:
     void remove_player(uint16_t peer_id);
     void update_player(uint16_t peer_id, const ObjectTransform& transform, float health);
     Player* get_player(uint16_t peer_id);
+    const std::unordered_map<uint16_t, Player>& get_all_players() const { return players; }
     
     // === Object Management ===
     void add_object(const Object& object);

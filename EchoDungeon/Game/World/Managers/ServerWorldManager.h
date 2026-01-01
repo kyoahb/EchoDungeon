@@ -42,7 +42,7 @@ public:
 
     // === Network Synchronization ===
     void broadcast_world_snapshot();  // Send full state to all clients
-    void broadcast_world_snapshot(ENetPeer* peer);  // Send full state to specific client
+    void send_world_snapshot(ENetPeer* peer);  // Send full state to specific client
     void broadcast_entity_updates();  // Send delta updates (called every tick)
     
     // === Input Validation ===
