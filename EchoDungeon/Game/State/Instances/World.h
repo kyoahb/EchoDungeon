@@ -26,8 +26,13 @@ private:
 	int client_entity_spawn_sub = -1;
 	int client_entity_destroy_sub = -1;
 	int client_player_spawn_sub = -1;
+	int client_player_remove_sub = -1;
 
 	// Server-side event subscription IDs
 	int server_player_input_sub = -1;
 	int server_request_snapshot_sub = -1;
+	int server_player_disconnect_sub = -1;
+	int server_player_disconnect_timeout_sub = -1;
+
+	std::atomic<bool> should_quit_to_mainmenu = false;
 };

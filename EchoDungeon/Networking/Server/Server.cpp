@@ -259,6 +259,7 @@ void Server::update() {
     
     ENetEvent event;
     while (enet_host_service(host, &event, 0) > 0) {
+		auto peer_info = peers.get_peer_by_enet(event.peer);
         switch (event.type) {
             case ENET_EVENT_TYPE_CONNECT: {
                 INFO("A new client connected from " + NetUtils::get_ip_string(event.peer->address));
@@ -282,7 +283,17 @@ void Server::update() {
                 break;
 
             case ENET_EVENT_TYPE_DISCONNECT: {
-                INFO("A client disconnected");
+                if (peer_info.has_value()) {
+					INFO("Client disconnected: " + peer_info->data.username + 
+                        " (ID " + std::to_string(peer_info->data.server_side_id) + ")");
+                }
+                else {
+					INFO("An unknown client disconnected");
+                }
+                
+                // Trigger event
+                ServerEvents::DisconnectEventData data(event);
+                ServerEvents::DisconnectEvent::trigger(data);
                 
                 // Remove from pending connections if applicable
                 pending_connections.erase(event.peer);
@@ -293,15 +304,21 @@ void Server::update() {
 				// Broadcast ServerDataUpdate to all remaining peers
 				auto update_packet = ServerDataUpdatePacket(get_peers_map(), server_info);
 				broadcast_packet(update_packet);
-                
-                // Trigger event for external listeners
-                ServerEvents::DisconnectEventData data(event);
-                ServerEvents::DisconnectEvent::trigger(data);
                 break;
             }
 
             case ENET_EVENT_TYPE_DISCONNECT_TIMEOUT: {
-                INFO("A client disconnected due to timeout");
+                if (peer_info.has_value()) {
+                    INFO("Client disconnected due to timeout: " + peer_info->data.username + 
+                        " (ID " + std::to_string(peer_info->data.server_side_id) + ")");
+                }
+                else {
+                    INFO("An unknown client disconnected due to timeout");
+                }
+                
+                // Trigger event
+                ServerEvents::DisconnectTimeoutEventData data(event);
+                ServerEvents::DisconnectTimeoutEvent::trigger(data);
                 
                 // Remove from pending connections if applicable
                 pending_connections.erase(event.peer);
@@ -312,10 +329,6 @@ void Server::update() {
                 // Broadcast ServerDataUpdate to all remaining peers
                 auto update_packet = ServerDataUpdatePacket(get_peers_map(), server_info);
                 broadcast_packet(update_packet);
-                
-                // Trigger event for external listeners
-                ServerEvents::DisconnectTimeoutEventData data(event);
-                ServerEvents::DisconnectTimeoutEvent::trigger(data);
                 break;
             }
 

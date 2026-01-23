@@ -28,6 +28,12 @@ void World::on_activate() {
 			s_world_manager->add_player(peer_entry.data.server_side_id, peer_entry.data.username);
 		}
 
+		s_world_manager->spawn_object(
+			ObjectType::MODEL,
+			"cube",
+			raylib::Vector3{ 1.0f, 0.5f, 1.0f }
+		);
+
 		// Broadcast initial world snapshot to all clients
 		s_world_manager->broadcast_world_snapshot();
 	}
@@ -75,6 +81,14 @@ void World::on_deactivate() {
 			ServerEvents::RequestWorldSnapshotEvent::unregister_callback(server_request_snapshot_sub);
 			server_request_snapshot_sub = -1;
 		}
+		if (server_player_disconnect_sub != -1) {
+			ServerEvents::DisconnectEvent::unregister_callback(server_player_disconnect_sub);
+			server_player_disconnect_sub = -1;
+		}
+		if (server_player_disconnect_timeout_sub != -1) {
+			ServerEvents::DisconnectTimeoutEvent::unregister_callback(server_player_disconnect_timeout_sub);
+			server_player_disconnect_timeout_sub = -1;
+		}
 	}
 	
 	// Clear and destroy ClientWorldManager
@@ -94,6 +108,32 @@ void World::on_deactivate() {
 
 void World::update() {
 	if (!c_world_manager) return;
+
+	if (should_quit_to_mainmenu.load()) {
+		TRACE("Quit flag set in world state, returning to main menu");
+		should_quit_to_mainmenu.store(false);
+
+		// Destroy server if it exists
+		if (game.server) {
+			game.server->stop().get();
+			game.server = nullptr;
+		}
+
+		// Destroy client if it exists
+		if (game.client) {
+			game.client->disconnect("Quit flag set in world state").get();
+			game.client->stop();
+			game.client = nullptr;
+		}
+
+		game.state_manager.set_state("MainMenu");
+		return;
+	}
+
+	// Set exit flag if disconnected
+	if (!game.client->is_connected()) {
+		should_quit_to_mainmenu.store(true);
+	}
 
 	// Update ServerWorldManager (if hosting)
 	if (game.is_hosting() && s_world_manager) {
@@ -159,26 +199,26 @@ void World::setup_client_events() {
 	// EntitySpawn - New object spawned in world
 	client_entity_spawn_sub = ClientEvents::EntitySpawnEvent::register_callback(
 		[this](const ClientEvents::EntitySpawnEventData& data) {
-			if (c_world_manager) {
-				c_world_manager->add_object(data.packet.object);
-				TRACE("Entity spawned: ID=%d", data.packet.object.id);
-			}
+				if (c_world_manager) {
+					c_world_manager->add_object(data.packet.object);
+					TRACE("Entity spawned: ID=" + std::to_string(data.packet.object.id));
+				}
 		}
 	);
 	
 	// EntityDestroy - Object/player removed from world
 	client_entity_destroy_sub = ClientEvents::EntityDestroyEvent::register_callback(
 		[this](const ClientEvents::EntityDestroyEventData& data) {
-			if (c_world_manager) {
-				if (data.packet.entity_type == EntityType::PLAYER) {
-					c_world_manager->remove_player(data.packet.entity_id);
-					TRACE("Player removed: ID=%d", data.packet.entity_id);
+				if (c_world_manager) {
+					if (data.packet.entity_type == EntityType::PLAYER) {
+						c_world_manager->remove_player(data.packet.entity_id);
+						TRACE("Player removed: ID=" + std::to_string(data.packet.entity_id));
+					}
+					else if (data.packet.entity_type == EntityType::OBJECT) {
+						c_world_manager->remove_object(data.packet.entity_id);
+						TRACE("Object removed: ID=" + std::to_string(data.packet.entity_id));
+					}
 				}
-				else if (data.packet.entity_type == EntityType::OBJECT) {
-					c_world_manager->remove_object(data.packet.entity_id);
-					TRACE("Object removed: ID=%d", data.packet.entity_id);
-				}
-			}
 		}
 	);
 	
@@ -187,7 +227,7 @@ void World::setup_client_events() {
 		[this](const ClientEvents::PlayerSpawnEventData& data) {
 			if (c_world_manager) {
 				c_world_manager->add_player(data.packet.player);
-				TRACE("Player spawned: %s (ID=%d)", data.packet.player.name.c_str(), data.packet.player.id);
+				TRACE("Player spawned: " + data.packet.player.name + " ID=" + std::to_string(data.packet.player.id));
 			}
 		}
 	);
@@ -214,6 +254,34 @@ void World::setup_server_events() {
 				// Send world snapshot to the requesting client only
 				s_world_manager->send_world_snapshot(data.peer);
 				TRACE("Sent world snapshot to peer");
+			}
+		}
+	);
+
+	// Player disconnect - Remove player from world
+	server_player_disconnect_sub = ServerEvents::DisconnectEvent::register_callback(
+		[this](const ServerEvents::DisconnectEventData& data) {
+			if (s_world_manager) {
+				auto peer_opt = game.server->peers.get_peer_by_enet(data.event.peer);
+				if (peer_opt.has_value()) {
+					uint16_t peer_id = peer_opt.value().data.server_side_id;
+					s_world_manager->remove_player(peer_id);
+					TRACE("Removed disconnected player: ID=" + std::to_string(peer_id));
+				}
+			}
+		}
+	);
+
+	// Player disconnect timeout - Remove player from world
+	server_player_disconnect_timeout_sub = ServerEvents::DisconnectTimeoutEvent::register_callback(
+		[this](const ServerEvents::DisconnectTimeoutEventData& data) {
+			if (s_world_manager) {
+				auto peer_opt = game.server->peers.get_peer_by_enet(data.event.peer);
+				if (peer_opt.has_value()) {
+					uint16_t peer_id = peer_opt.value().data.server_side_id;
+					s_world_manager->remove_player(peer_id);
+					TRACE("Removed timed-out player: ID=" + std::to_string(peer_id));
+				}
 			}
 		}
 	);

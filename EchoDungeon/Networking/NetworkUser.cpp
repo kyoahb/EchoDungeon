@@ -68,7 +68,6 @@ bool NetworkUser::send_packet(ENetPacket* packet, ENetPeer* peer) {
 	}
 
 	int result = enet_peer_send(peer, 0, packet); // Send the packet on channel 0
-	enet_host_flush(host); // Ensure the packet is sent immediately
 
 	if (result < 0) { // Check for send failure
 		ERROR("Failed to send packet to peer with IP address: " + NetUtils::get_ip_string(peer->address));

@@ -55,7 +55,7 @@ private:
     
     // Update tracking
     std::chrono::steady_clock::time_point last_update_time;
-    const float update_interval = 1.0f / 20.0f;  // 20 updates per second
+    const float update_interval = 1.0f / 30.0f;  // 30 updates per second
     
     // Helper methods
     void collect_entity_updates(std::vector<EntityUpdateData>& updates);

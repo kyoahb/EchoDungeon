@@ -69,7 +69,7 @@ Client::~Client() {
 * @return true if fully connected, false otherwise.
 */
 bool Client::is_connected() const {
-	return connection_state == ClientConnectionState::CONNECTED;
+	return peers.server_peer != nullptr && peers.server_peer->state == ENET_PEER_STATE_CONNECTED;
 }
 
 /*
@@ -79,7 +79,7 @@ bool Client::is_connected() const {
 bool Client::send_packet(Packet& packet) {
 	TRACE("Sending packet " + PacketRegistry::getPacketName(packet.header.type) + " to server");
 
-	if (peers.server_peer == nullptr || peers.server_peer->state != ENET_PEER_STATE_CONNECTED) {
+	if (!is_connected()) {
 		ERROR("Client is not connected, cannot send packet");
 		return false;
 	}

@@ -49,6 +49,10 @@ const AssetImageModel& AssetMap::get_image_model(const std::string& image_id) { 
 
 void AssetMap::load() {
 	// Add all models to be loaded here
+	models.insert({
+		"cube",
+		AssetModel("Assets/models/cube.glb")
+		});
 
 	// Add all images to be loaded here
 	images.insert({

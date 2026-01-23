@@ -78,6 +78,7 @@ void Lobby::update() {
 				
 				// Sync state change to world with all clients
 				if (game.server) {
+					game.server->server_info.closed = true; // Close the server to new connections
 					auto packet = StateChangePacket("World");
 					game.server->broadcast_packet(packet);
 				}

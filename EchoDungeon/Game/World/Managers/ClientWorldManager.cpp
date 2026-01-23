@@ -71,6 +71,8 @@ void ClientWorldManager::add_player(const Player& player) {
     players[player.id] = player;
     if (player.id == client->peers.local_server_side_id) {
         players[player.id].is_local = true;
+        // Initialize last_sent_transform when local player is added
+        last_sent_transform = players[player.id].transform;
     }
 }
 
@@ -126,7 +128,9 @@ void ClientWorldManager::apply_world_snapshot(const WorldSnapshotPacket& snapsho
         players[peer_id] = player;
         if (peer_id == client->peers.local_server_side_id) {
             players[peer_id].is_local = true;
-		}
+            // Initialize last_sent_transform when local player is first loaded
+            last_sent_transform = players[peer_id].transform;
+        }
     }
     
     // Load all objects
@@ -158,7 +162,12 @@ void ClientWorldManager::send_local_player_input() {
     client->send_packet(packet);
     
     // Cache the sent transform
-    last_sent_transform = local_player->transform;
+    try {
+        last_sent_transform = local_player->transform;
+    } catch (const std::exception& e) {
+        // Log the error but don't crash - the transform might be corrupted
+        TRACE("Warning: Failed to cache player transform: %s", e.what());
+    }
 }
 
 
