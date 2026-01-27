@@ -8,7 +8,7 @@ private:
 	raylib::Vector3 position;
 	raylib::Vector3 rotation; // Euler angles in degrees 0-360
 	raylib::Vector3 scale;
-	bool has_collision = false;
+	bool has_collision = true;
 	bool is_static = false;
 
 public:

@@ -9,6 +9,7 @@
 #include <unordered_map>
 #include <string>
 #include <vector>
+#include "PhysicsManager.h"
 
 class Client;  // Forward declaration
 

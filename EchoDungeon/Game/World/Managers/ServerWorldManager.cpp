@@ -17,8 +17,8 @@ void ServerWorldManager::update(float delta_time) {
         last_update_time = now;
     }
     
-    // TODO: Update physics here when PhysicsManager is ready
-    // physics_manager.update(delta_time);
+    // Update collisions
+	PhysicsManager::update(&players, &objects);
 }
 
 void ServerWorldManager::clear() {
