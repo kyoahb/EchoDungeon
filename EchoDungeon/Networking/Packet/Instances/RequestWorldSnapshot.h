@@ -3,7 +3,7 @@
 #include <cereal/types/vector.hpp>
 #include <cereal/types/unordered_map.hpp>
 
-// Packet type: 16
+// Packet type: 10
 // Packet name: RequestWorldSnapshot
 
 /**
@@ -14,7 +14,7 @@ public:
 
 	// Default constructor
 	RequestWorldSnapshotPacket()
-		: Packet(16, true) {
+		: Packet(10, true) {
 	}
 
 

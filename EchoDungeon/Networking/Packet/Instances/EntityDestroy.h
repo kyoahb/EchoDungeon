@@ -11,7 +11,7 @@
  */
 class EntityDestroyPacket : public Packet {
 public:
-	uint16_t entity_id;  // ID of entity to destroy
+	uint32_t entity_id;  // ID of entity to destroy
 	EntityType entity_type;  // Type of entity
 
 	// Default constructor
@@ -20,7 +20,7 @@ public:
 	}
 
 	// Constructor with data
-	EntityDestroyPacket(uint16_t _entity_id, EntityType _entity_type)
+	EntityDestroyPacket(uint32_t _entity_id, EntityType _entity_type)
 		: Packet(13, true), entity_id(_entity_id), entity_type(_entity_type) {
 	}
 

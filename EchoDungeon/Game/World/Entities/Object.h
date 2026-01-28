@@ -11,14 +11,14 @@ enum class ObjectType : uint8_t {
 
 class Object {
 public:
-   Object(uint16_t id, const std::string& asset_id, ObjectType type);
+   Object(uint32_t id, const std::string& asset_id, ObjectType type);
 
    Object();
    virtual ~Object() = default;
 
    // Core properties
    ObjectTransform transform;
-   uint16_t id;  // Unique object ID
+   uint32_t id;  // Unique object ID
    std::string asset_id;  // Asset reference ID
 
    // Get the type

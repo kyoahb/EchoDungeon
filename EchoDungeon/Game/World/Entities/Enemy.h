@@ -22,7 +22,7 @@ public:
 
 	void draw3D(const raylib::Camera3D& camera); // Draw the enemy model in 3D space
 	void draw2D(const raylib::Camera3D& camera); // Draw 2D UI elements
-	void tick(float delta_time, std::vector<Player&>& players); // Update enemy logic per tick
+	void tick(float delta_time, std::vector<Player*>& players); // Update enemy logic per tick
 
 	template <typename Archive>
 	void serialize(Archive& archive) {

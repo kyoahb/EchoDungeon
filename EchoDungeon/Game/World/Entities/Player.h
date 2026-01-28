@@ -4,11 +4,11 @@
 #include "Game/World/Assets/AssetMap.h"
 class Player {
 public:
-	Player(uint16_t _id, bool _is_local, const std::string& _name);
+	Player(uint32_t _id, bool _is_local, const std::string& _name);
 	Player();
 	virtual ~Player() {}
 
-	uint16_t id = 0; // ID linked to network entity
+	uint32_t id = 0; // ID linked to network entity
 	bool is_local = false; // Is this the local player?
 	std::string name = "?"; // Name rendered above the player
 
@@ -18,7 +18,7 @@ public:
 	float damage = 10.0f; // Damage dealt by the player
 	float max_health = 100.0f; // Maximum health
 	float range = 2.0f; // Attack range
-	float speed = 2.0f;
+	float speed = 2.0f; // Units per second 
 
 	std::string asset_id = "player";
 

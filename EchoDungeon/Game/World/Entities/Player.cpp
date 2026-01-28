@@ -8,7 +8,7 @@ Player::Player() :
 	transform() {
 }
 
-Player::Player(uint16_t _id, bool _is_local, const std::string& _name)
+Player::Player(uint32_t _id, bool _is_local, const std::string& _name)
 	: id(_id), is_local(_is_local), name(_name), transform(){ 
 }
 

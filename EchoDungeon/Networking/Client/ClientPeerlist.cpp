@@ -21,7 +21,7 @@ void ClientPeerlist::add_peer(UserData user) {
  * @brief Removes a peer from the peerlist by server-side ID.
  * @param server_side_id The server-side ID of the peer to remove.
  */
-void ClientPeerlist::remove_peer(uint16_t server_side_id) {
+void ClientPeerlist::remove_peer(uint32_t server_side_id) {
     peers.erase(server_side_id);
 }
 
@@ -86,8 +86,8 @@ std::vector<UserData> ClientPeerlist::get_other_peers() const {
  * @param server_side_id The server-side ID of the peer.
  * @return The UserData of the peer, or none if not found.
  */
-std::optional<UserData> ClientPeerlist::get_peer_by_id(uint16_t server_side_id) const {
-    auto it = peers.find(server_side_id);
+std::optional<UserData> ClientPeerlist::get_peer_by_id(uint32_t server_side_id) const {
+auto it = peers.find(server_side_id);
     if (it != peers.end()) {
         return it->second;
     }
@@ -121,6 +121,6 @@ std::optional<UserData> ClientPeerlist::get_local_peer() const {
  * @brief Sets the local user's server-side ID.
  * @param server_side_id The server-side ID to set.
  */
-void ClientPeerlist::set_local_server_side_id(uint16_t server_side_id) {
+void ClientPeerlist::set_local_server_side_id(uint32_t server_side_id) {
     local_server_side_id = server_side_id;
 }

@@ -18,7 +18,7 @@ void ServerWorldManager::update(float delta_time) {
     }
     
     // Update collisions
-	PhysicsManager::update(&players, &objects);
+	PhysicsManager::update(&players, &enemies, &objects, this, nullptr);
 }
 
 void ServerWorldManager::clear() {
@@ -28,58 +28,113 @@ void ServerWorldManager::clear() {
 }
 
 
-void ServerWorldManager::add_player(uint16_t peer_id, const std::string& name) {
+void ServerWorldManager::add_player(uint32_t peer_id, const std::string& name) {
     Player player(peer_id, false, name);
     player.transform.set_position({0.0f, 1.0f, 0.0f});  // Spawn at origin
     players[peer_id] = player;
     
-    // Broadcast player spawn to all clients
-    PlayerSpawnPacket packet(player);
+    // Broadcast player spawn to all clients with individual fields
+    PlayerSpawnPacket packet(
+        player.id,
+        player.name,
+        player.transform,
+        player.health,
+        player.max_health,
+        player.damage,
+        player.range,
+        player.speed,
+        player.asset_id
+    );
     server->broadcast_packet(packet);
 }
 
-void ServerWorldManager::remove_player(uint16_t peer_id) {
-    if (players.erase(peer_id) > 0) {
-        // Broadcast entity destroy
-        EntityDestroyPacket packet(peer_id, EntityType::PLAYER);
+void ServerWorldManager::remove_player(uint32_t peer_id) {
+if (players.erase(peer_id) > 0) {
+        // Broadcast player destroy
+        PlayerDestroyPacket packet(peer_id);
         server->broadcast_packet(packet);
     }
 }
 
-Player* ServerWorldManager::get_player(uint16_t peer_id) {
+Player* ServerWorldManager::get_player(uint32_t peer_id) {
     auto it = players.find(peer_id);
     return (it != players.end()) ? &it->second : nullptr;
 }
 
 
-uint16_t ServerWorldManager::spawn_object(ObjectType type, const std::string& asset_id, const raylib::Vector3& position) {
-    uint16_t object_id = next_object_id++;
+uint32_t ServerWorldManager::spawn_object(ObjectType type, const std::string& asset_id, const raylib::Vector3& position) {
+    uint32_t object_id = next_object_id++;
     
     Object obj(object_id, asset_id, type);
     obj.transform.set_position(position);
     objects[object_id] = obj;
     
-    // Broadcast object spawn to all clients
-    EntitySpawnPacket packet(obj);
+    // Broadcast object spawn to all clients with individual fields
+    ObjectSpawnPacket packet(
+        object_id,
+        asset_id,
+        type,
+        obj.transform
+    );
     server->broadcast_packet(packet);
     
     return object_id;
 }
 
-void ServerWorldManager::destroy_object(uint16_t object_id) {
-    if (objects.erase(object_id) > 0) {
-        // Broadcast entity destroy
-        EntityDestroyPacket packet(object_id, EntityType::OBJECT);
+void ServerWorldManager::destroy_object(uint32_t object_id) {
+if (objects.erase(object_id) > 0) {
+        // Broadcast object destroy
+        ObjectDestroyPacket packet(object_id);
         server->broadcast_packet(packet);
     }
 }
 
-Object* ServerWorldManager::get_object(uint16_t object_id) {
+Object* ServerWorldManager::get_object(uint32_t object_id) {
     auto it = objects.find(object_id);
     return (it != objects.end()) ? &it->second : nullptr;
 }
 
+uint32_t ServerWorldManager::spawn_enemy(float max_health, float speed, float damage, 
+    const std::string& asset_id, const raylib::Vector3& position) {
 
+    static uint32_t next_enemy_id = 1;
+    uint32_t enemy_id = next_enemy_id++;
+    
+    Enemy enemy(enemy_id, max_health, speed, damage, asset_id);
+    enemy.transform.set_position(position);
+    enemies[enemy_id] = enemy;
+    
+    // Broadcast enemy spawn to all clients with individual fields
+    EnemySpawnPacket packet(
+        enemy.id,
+        enemy.transform,
+        enemy.health,
+        enemy.max_health,
+        enemy.damage,
+        enemy.speed,
+        enemy.asset_id
+    );
+    server->broadcast_packet(packet);
+    
+    return enemy_id;
+}
+
+Enemy* ServerWorldManager::get_enemy(uint32_t enemy_id) {
+    auto it = enemies.find(enemy_id);
+    return (it != enemies.end()) ? &it->second : nullptr;
+}
+
+const std::unordered_map<uint32_t, Enemy>& ServerWorldManager::get_all_enemies() const {
+    return enemies; 
+}
+
+void ServerWorldManager::destroy_enemy(uint32_t enemy_id) {
+    if (enemies.erase(enemy_id) > 0) {
+        // Broadcast enemy destroy
+        EnemyDestroyPacket packet(enemy_id);
+        server->broadcast_packet(packet);
+    }
+}
 
 void ServerWorldManager::broadcast_world_snapshot() {
     WorldSnapshotPacket packet(players, objects);
@@ -92,43 +147,49 @@ void ServerWorldManager::send_world_snapshot(ENetPeer* peer) {
 }
 
 void ServerWorldManager::broadcast_entity_updates() {
-    std::vector<EntityUpdateData> updates;
-    collect_entity_updates(updates);
+    // Collect and broadcast player updates
+    std::vector<PlayerUpdateData> player_updates;
+    collect_player_updates(player_updates);
+    if (!player_updates.empty()) {
+        PlayerUpdatePacket player_packet(player_updates);
+        server->broadcast_packet(player_packet);
+    }
     
-    if (!updates.empty()) {
-        EntityUpdatePacket packet(updates);
-        server->broadcast_packet(packet);
+    // Collect and broadcast enemy updates
+    std::vector<EnemyUpdateData> enemy_updates;
+    collect_enemy_updates(enemy_updates);
+    if (!enemy_updates.empty()) {
+        EnemyUpdatePacket enemy_packet(enemy_updates);
+        server->broadcast_packet(enemy_packet);
     }
 }
 
-void ServerWorldManager::collect_entity_updates(std::vector<EntityUpdateData>& updates) {
+void ServerWorldManager::collect_player_updates(std::vector<PlayerUpdateData>& updates) {
     // Collect player updates
     for (const auto& [peer_id, player] : players) {
-        EntityUpdateData update;
-        update.entity_id = peer_id;
-        update.entity_type = EntityType::PLAYER;
+        PlayerUpdateData update;
+        update.id = peer_id;
         update.transform = player.transform;
         update.health = player.health;
         updates.push_back(update);
     }
-    
-    // Collect dynamic object updates (skip static objects)
-    for (const auto& [object_id, object] : objects) {
-        if (!object.transform.get_is_static()) {
-            EntityUpdateData update;
-            update.entity_id = object_id;
-            update.entity_type = EntityType::OBJECT;
-            update.transform = object.transform;
-            update.health = 0.0f;  // Objects don't have health
-            updates.push_back(update);
-        }
+}
+
+void ServerWorldManager::collect_enemy_updates(std::vector<EnemyUpdateData>& updates) {
+    // Collect enemy updates
+    for (const auto& [enemy_id, enemy] : enemies) {
+        EnemyUpdateData update;
+        update.id = enemy_id;
+        update.transform = enemy.transform;
+        update.health = enemy.health;
+        updates.push_back(update);
     }
 }
 
 
 
-void ServerWorldManager::handle_player_input(uint16_t peer_id, const ObjectTransform& input_transform) {
-    Player* player = get_player(peer_id);
+void ServerWorldManager::handle_player_input(uint32_t peer_id, const ObjectTransform& input_transform) {
+Player* player = get_player(peer_id);
     if (!player) return;
     
     // Validate the transform (anti-cheat, collision, etc.)

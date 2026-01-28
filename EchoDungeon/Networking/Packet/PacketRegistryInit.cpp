@@ -8,10 +8,14 @@
 #include "Networking/Packet/Instances/GeneralInformationUpdate.h"
 #include "Networking/Packet/Instances/StateChange.h"
 #include "Networking/Packet/Instances/WorldSnapshot.h"
-#include "Networking/Packet/Instances/EntityUpdate.h"
-#include "Networking/Packet/Instances/EntitySpawn.h"
-#include "Networking/Packet/Instances/EntityDestroy.h"
-#include "Networking/Packet/Instances/PlayerSpawn.h"
+#include "Networking/Packet/Instances/Player/PlayerSpawn.h"
+#include "Networking/Packet/Instances/Player/PlayerUpdate.h"
+#include "Networking/Packet/Instances/Player/PlayerDestroy.h"
+#include "Networking/Packet/Instances/Enemy/EnemySpawn.h"
+#include "Networking/Packet/Instances/Enemy/EnemyUpdate.h"
+#include "Networking/Packet/Instances/Enemy/EnemyDestroy.h"
+#include "Networking/Packet/Instances/Object/ObjectSpawn.h"
+#include "Networking/Packet/Instances/Object/ObjectDestroy.h"
 #include "Networking/Packet/Instances/PlayerInput.h"
 #include "Networking/Packet/Instances/RequestWorldSnapshot.h"
 
@@ -57,8 +61,8 @@ void PacketRegistry::initializeRegistry() {
     REGISTER_SERVER_PACKET(1, ConnectionInitiation);
     REGISTER_SERVER_PACKET(4, DisconnectInfo);
 	REGISTER_SERVER_PACKET(8, GeneralInformationUpdate);
-	REGISTER_SERVER_PACKET(15, PlayerInput);
-    REGISTER_SERVER_PACKET(16, RequestWorldSnapshot);
+	REGISTER_SERVER_PACKET(9, PlayerInput);
+    REGISTER_SERVER_PACKET(10, RequestWorldSnapshot);
 
     // Server -> Client packets
     REGISTER_CLIENT_PACKET(2, ConnectionRefusal);
@@ -66,9 +70,19 @@ void PacketRegistry::initializeRegistry() {
     REGISTER_CLIENT_PACKET(5, DisconnectKick);
     REGISTER_CLIENT_PACKET(6, ServerDataUpdate);
 	REGISTER_CLIENT_PACKET(7, StateChange);
-	REGISTER_CLIENT_PACKET(10, WorldSnapshot);
-	REGISTER_CLIENT_PACKET(11, EntityUpdate);
-	REGISTER_CLIENT_PACKET(12, EntitySpawn);
-	REGISTER_CLIENT_PACKET(13, EntityDestroy);
+	REGISTER_CLIENT_PACKET(11, WorldSnapshot);
+	
+	// Player packets (Server -> Client)
 	REGISTER_CLIENT_PACKET(14, PlayerSpawn);
+	REGISTER_CLIENT_PACKET(15, PlayerUpdate);
+	REGISTER_CLIENT_PACKET(16, PlayerDestroy);
+	
+	// Enemy packets (Server -> Client)
+	REGISTER_CLIENT_PACKET(17, EnemySpawn);
+	REGISTER_CLIENT_PACKET(18, EnemyUpdate);
+	REGISTER_CLIENT_PACKET(19, EnemyDestroy);
+	
+	// Object packets (Server -> Client)
+	REGISTER_CLIENT_PACKET(20, ObjectSpawn);
+	REGISTER_CLIENT_PACKET(21, ObjectDestroy);
 }

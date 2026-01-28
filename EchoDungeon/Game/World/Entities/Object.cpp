@@ -4,7 +4,7 @@ Object::Object()
     : asset_id(""), type(ObjectType::MODEL), id(65534) {
 }
 
-Object::Object(uint16_t id, const std::string& asset_id, ObjectType type)
+Object::Object(uint32_t id, const std::string& asset_id, ObjectType type)
     : asset_id(asset_id), type(type), id(id) {
 }
 

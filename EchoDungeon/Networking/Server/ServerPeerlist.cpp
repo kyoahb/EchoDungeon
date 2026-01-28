@@ -35,7 +35,7 @@ void ServerPeerlist::remove_peer(ENetPeer* peer) {
  * @brief Removes a peer from the peerlist by server-side ID.
  * @param server_side_id The server-side ID of the peer to remove.
  */
-void ServerPeerlist::remove_peer(uint16_t server_side_id) {
+void ServerPeerlist::remove_peer(uint32_t server_side_id) {
     peers.erase(server_side_id);
 }
 
@@ -95,7 +95,7 @@ std::vector<PeerEntry> ServerPeerlist::get_all_peers() const {
  * @param server_side_id The server-side ID of the peer.
  * @return An optional containing the PeerEntry if found, or empty otherwise.
  */
-std::optional<PeerEntry> ServerPeerlist::get_peer_by_id(uint16_t server_side_id) const {
+std::optional<PeerEntry> ServerPeerlist::get_peer_by_id(uint32_t server_side_id) const {
     auto it = peers.find(server_side_id);
     if (it != peers.end()) {
         return it->second;

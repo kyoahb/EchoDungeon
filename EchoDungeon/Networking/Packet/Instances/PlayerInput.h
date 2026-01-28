@@ -2,13 +2,13 @@
 #include "Networking/Packet/Packet.h"
 #include "Game/World/Entities/ObjectTransform.h"
 
-// Packet type: 15
+// Packet type: 9
 // Packet name: PlayerInput
 
 /**
  * @brief Client sends player transform to server.
  * Sent frequently (every frame or when input changes) with unreliable delivery.
- * Server validates and broadcasts the result via EntityUpdatePacket.
+ * Server validates and broadcasts the result via PlayerUpdatePacket.
  */
 class PlayerInputPacket : public Packet {
 public:
@@ -16,12 +16,12 @@ public:
 
 	// Default constructor (unreliable for performance)
 	PlayerInputPacket()
-		: Packet(15, false) {  // false = unreliable
+		: Packet(9, false) {  // false = unreliable
 	}
 
 	// Constructor with data
 	PlayerInputPacket(const ObjectTransform& _transform)
-		: Packet(15, false), transform(_transform) {
+		: Packet(9, false), transform(_transform) {
 	}
 
 	// Macros for serialization

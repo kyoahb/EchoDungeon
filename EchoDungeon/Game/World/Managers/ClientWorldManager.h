@@ -5,11 +5,13 @@
 #include "Game/World/Entities/Player.h"
 #include "Networking/Packet/Instances/PlayerInput.h"
 #include "Networking/Packet/Instances/WorldSnapshot.h"
-#include "Networking/Packet/Instances/EntityUpdate.h"
+#include "Networking/Packet/Instances/Player/PlayerUpdate.h"
+#include "Networking/Packet/Instances/Enemy/EnemyUpdate.h"
 #include <unordered_map>
 #include <string>
 #include <vector>
 #include "PhysicsManager.h"
+#include "Game/World/Entities/Enemy.h"
 
 class Client;  // Forward declaration
 
@@ -31,18 +33,23 @@ public:
     Player* get_local_player();
     
     void add_player(const Player& player);
-    void remove_player(uint16_t peer_id);
-    void update_player(uint16_t peer_id, const ObjectTransform& transform, float health);
-    Player* get_player(uint16_t peer_id);
-    const std::unordered_map<uint16_t, Player>& get_all_players() const { return players; }
+    void remove_player(uint32_t peer_id);
+    void update_player(uint32_t peer_id, const ObjectTransform& transform, float health);
+    Player* get_player(uint32_t peer_id);
+    const std::unordered_map<uint32_t, Player>& get_all_players() const { return players; }
     
     void add_object(const Object& object);
-    void remove_object(uint16_t object_id);
-    void update_object(uint16_t object_id, const ObjectTransform& transform);
-    Object* get_object(uint16_t object_id);
+    void remove_object(uint32_t object_id);
+    Object* get_object(uint32_t object_id);
+    
+    void add_enemy(const Enemy& enemy);
+    void remove_enemy(uint32_t enemy_id);
+    void update_enemy(uint32_t enemy_id, const ObjectTransform& transform, float health);
+    Enemy* get_enemy(uint32_t enemy_id);
 
     void apply_world_snapshot(const WorldSnapshotPacket& snapshot);
-    void apply_entity_updates(const std::vector<EntityUpdateData>& updates);
+    void apply_player_updates(const std::vector<PlayerUpdateData>& updates);
+    void apply_enemy_updates(const std::vector<EnemyUpdateData>& updates);
     void send_local_player_input();  // Send local player transform to server
 
     raylib::Camera3D& get_camera() { return camera; }
@@ -52,8 +59,9 @@ private:
     std::shared_ptr<Client> client;  // Reference to client for sending packets
     
     // World state
-    std::unordered_map<uint16_t, Player> players;  // Keyed by peer_id
-    std::unordered_map<uint16_t, Object> objects;  // Keyed by object_id
+    std::unordered_map<uint32_t, Player> players;  // Keyed by peer_id
+    std::unordered_map<uint32_t, Object> objects;  // Keyed by object_id
+    std::unordered_map<uint32_t, Enemy> enemies;  // Keyed by enemy_id
     
     // Camera
     raylib::Camera3D camera;

@@ -11,8 +11,8 @@ enum class UserStatus : uint8_t {
 };
 
 struct UserData {
-	uint16_t server_side_id = 0; // Server-side user ID
-	std::string username = "Unknown"; // Username of the user
+uint32_t server_side_id = 0; // Server-side user ID
+std::string username = "Unknown"; // Username of the user
 	bool is_host = false; // Is the user the host (hosting users are also running the server locally)
 	std::string ip_address = "???.???.???.???"; // IP address of the user
 	uint64_t connected_at = 0; // Timestamp of when the user connected (ms since epoch)

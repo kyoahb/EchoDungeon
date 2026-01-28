@@ -39,17 +39,17 @@ void Enemy::draw2D(const raylib::Camera3D& camera) {
 	DrawText(health_text.c_str(), (int)screen_pos.x - health_text_width / 2, (int)screen_pos.y, 18, DARKGREEN);
 }
 
-void Enemy::tick(float delta_time, std::vector<Player&>& players) {
+void Enemy::tick(float delta_time, std::vector<Player*>& players) {
 	// Simple AI: Move towards the closest player
 	if (players.empty()) return;
 	Player* closest_player = nullptr;
 	float closest_distance = FLT_MAX; // Set it to highest num possible
 
-	for (Player& player : players) {
-		float distance = player.transform.get_position().Distance(transform.get_position());
+	for (Player* player : players) {
+	float distance = player->transform.get_position().Distance(transform.get_position());
 		if (distance < closest_distance) {
 			closest_distance = distance;
-			closest_player = &player;
+			closest_player = player;
 		}
 	}
 

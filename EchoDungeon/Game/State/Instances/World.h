@@ -22,11 +22,14 @@ private:
 
 	// Client-side event subscription IDs
 	int client_world_snapshot_sub = -1;
-	int client_entity_update_sub = -1;
-	int client_entity_spawn_sub = -1;
-	int client_entity_destroy_sub = -1;
 	int client_player_spawn_sub = -1;
-	int client_player_remove_sub = -1;
+	int client_player_update_sub = -1;
+	int client_player_destroy_sub = -1;
+	int client_enemy_spawn_sub = -1;
+	int client_enemy_update_sub = -1;
+	int client_enemy_destroy_sub = -1;
+	int client_object_spawn_sub = -1;
+	int client_object_destroy_sub = -1;
 
 	// Server-side event subscription IDs
 	int server_player_input_sub = -1;

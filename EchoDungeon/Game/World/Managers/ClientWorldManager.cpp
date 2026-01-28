@@ -32,13 +32,18 @@ void ClientWorldManager::update(float delta_time) {
     update_camera(delta_time);
     
     // Apply physics (collision checking)
-	PhysicsManager::update(&players, &objects);
+	PhysicsManager::update(&players, &enemies, &objects, nullptr, this);
 }
 
 void ClientWorldManager::draw_3d() {
     // Draw all players
     for (auto& [peer_id, player] : players) {
         player.draw3D(camera);
+    }
+    
+    // Draw all enemies
+    for (auto& [enemy_id, enemy] : enemies) {
+        enemy.draw3D(camera);
     }
     
     // Draw all objects
@@ -52,11 +57,17 @@ void ClientWorldManager::draw_2d() {
     for (auto& [peer_id, player] : players) {
         player.draw2D(camera);
     }
+    
+    // Draw enemy UI elements (health bars)
+    for (auto& [enemy_id, enemy] : enemies) {
+        enemy.draw2D(camera);
+    }
 }
 
 void ClientWorldManager::clear() {
     players.clear();
     objects.clear();
+    enemies.clear();
 }
 
 
@@ -76,12 +87,12 @@ void ClientWorldManager::add_player(const Player& player) {
     }
 }
 
-void ClientWorldManager::remove_player(uint16_t peer_id) {
+void ClientWorldManager::remove_player(uint32_t peer_id) {
     players.erase(peer_id);
 }
 
-void ClientWorldManager::update_player(uint16_t peer_id, const ObjectTransform& transform, float health) {
-    auto it = players.find(peer_id);
+void ClientWorldManager::update_player(uint32_t peer_id, const ObjectTransform& transform, float health) {
+auto it = players.find(peer_id);
     if (it != players.end()) {
         // Don't update local player from server (client-side prediction)
         if (peer_id != client->peers.local_server_side_id) {
@@ -91,8 +102,8 @@ void ClientWorldManager::update_player(uint16_t peer_id, const ObjectTransform& 
     }
 }
 
-Player* ClientWorldManager::get_player(uint16_t peer_id) {
-    auto it = players.find(peer_id);
+Player* ClientWorldManager::get_player(uint32_t peer_id) {
+auto it = players.find(peer_id);
     return (it != players.end()) ? &it->second : nullptr;
 }
 
@@ -102,20 +113,34 @@ void ClientWorldManager::add_object(const Object& object) {
     objects[object.id] = object;
 }
 
-void ClientWorldManager::remove_object(uint16_t object_id) {
+void ClientWorldManager::remove_object(uint32_t object_id) {
     objects.erase(object_id);
 }
 
-void ClientWorldManager::update_object(uint16_t object_id, const ObjectTransform& transform) {
-    auto it = objects.find(object_id);
-    if (it != objects.end()) {
+Object* ClientWorldManager::get_object(uint32_t object_id) {
+auto it = objects.find(object_id);
+    return (it != objects.end()) ? &it->second : nullptr;
+}
+
+void ClientWorldManager::add_enemy(const Enemy& enemy) {
+    enemies[enemy.id] = enemy;
+}
+
+void ClientWorldManager::remove_enemy(uint32_t enemy_id) {
+    enemies.erase(enemy_id);
+}
+
+void ClientWorldManager::update_enemy(uint32_t enemy_id, const ObjectTransform& transform, float health) {
+    auto it = enemies.find(enemy_id);
+    if (it != enemies.end()) {
         it->second.transform = transform;
+        it->second.health = health;
     }
 }
 
-Object* ClientWorldManager::get_object(uint16_t object_id) {
-    auto it = objects.find(object_id);
-    return (it != objects.end()) ? &it->second : nullptr;
+Enemy* ClientWorldManager::get_enemy(uint32_t enemy_id) {
+    auto it = enemies.find(enemy_id);
+    return (it != enemies.end()) ? &it->second : nullptr;
 }
 
 
@@ -139,18 +164,15 @@ void ClientWorldManager::apply_world_snapshot(const WorldSnapshotPacket& snapsho
     }
 }
 
-void ClientWorldManager::apply_entity_updates(const std::vector<EntityUpdateData>& updates) {
+void ClientWorldManager::apply_player_updates(const std::vector<PlayerUpdateData>& updates) {
     for (const auto& update : updates) {
+        update_player(update.id, update.transform, update.health);
+    }
+}
 
-		if (update.entity_type == EntityType::PLAYER) {
-            update_player(update.entity_id, update.transform, update.health);
-        }
-        else if (update.entity_type == EntityType::NPC) {
-            // For later npcs eg enemies
-        }
-        else if (update.entity_type == EntityType::OBJECT) {
-            update_object(update.entity_id, update.transform);
-		}
+void ClientWorldManager::apply_enemy_updates(const std::vector<EnemyUpdateData>& updates) {
+    for (const auto& update : updates) {
+        update_enemy(update.id, update.transform, update.health);
     }
 }
 
@@ -199,11 +221,9 @@ void ClientWorldManager::process_local_player_input(float delta_time) {
     if (Input::is_key_down(KEY_D)) movement.x += 1.0f;
     
     // Normalize and apply speed
-    if (movement.x != 0.0f || movement.z != 0.0f) {
-        float speed = 5.0f;
-        
+    if (movement.x != 0.0f || movement.z != 0.0f) {    
         // Apply movement
-        local_player->move(movement.Normalize() * speed * delta_time);
+        local_player->move(movement.Normalize() * local_player->speed * delta_time);
     }
 }
 

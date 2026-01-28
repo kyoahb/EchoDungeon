@@ -15,10 +15,14 @@
  */
 
 struct EntityUpdateData {
-	uint16_t entity_id;  // ID
-	EntityType entity_type = EntityType::OBJECT;
-	ObjectTransform transform;
-	float health = 100.0f;  // For players and NPCs
+uint32_t entity_id;  // ID
+EntityType entity_type = EntityType::OBJECT;
+ObjectTransform transform;
+float health = 100.0f; // Player health
+float damage = 10.0f; // Damage dealt
+float max_health = 100.0f; // Maximum health
+float range = 2.0f; // Attack range
+float speed = 2.0f; // Movement speed
 
 	template<class Archive>
 	void serialize(Archive& archive) {

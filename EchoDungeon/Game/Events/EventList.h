@@ -9,10 +9,14 @@
 #include "Networking/Packet/Instances/GeneralInformationUpdate.h"
 #include "Networking/Packet/Instances/StateChange.h"
 #include "Networking/Packet/Instances/WorldSnapshot.h"
-#include "Networking/Packet/Instances/EntityUpdate.h"
-#include "Networking/Packet/Instances/EntitySpawn.h"
-#include "Networking/Packet/Instances/EntityDestroy.h"
-#include "Networking/Packet/Instances/PlayerSpawn.h"
+#include "Networking/Packet/Instances/Player/PlayerSpawn.h"
+#include "Networking/Packet/Instances/Player/PlayerUpdate.h"
+#include "Networking/Packet/Instances/Player/PlayerDestroy.h"
+#include "Networking/Packet/Instances/Enemy/EnemySpawn.h"
+#include "Networking/Packet/Instances/Enemy/EnemyUpdate.h"
+#include "Networking/Packet/Instances/Enemy/EnemyDestroy.h"
+#include "Networking/Packet/Instances/Object/ObjectSpawn.h"
+#include "Networking/Packet/Instances/Object/ObjectDestroy.h"
 #include "Networking/Packet/Instances/PlayerInput.h"
 #include "Networking/Packet/Instances/RequestWorldSnapshot.h"
 
@@ -50,10 +54,10 @@ namespace ServerEvents {
 	// GeneralInformationUpdate Event (Packet ID: 8)
 	SERVER_PACKET_EVENT_DECLARATION(GeneralInformationUpdate)
 
-	// PlayerInput Event (Packet ID: 15)
+	// PlayerInput Event (Packet ID: 9)
 	SERVER_PACKET_EVENT_DECLARATION(PlayerInput)
 
-    // RequestWorldSnapshot Event (Packet ID: 16)
+    // RequestWorldSnapshot Event (Packet ID: 10)
     SERVER_PACKET_EVENT_DECLARATION(RequestWorldSnapshot)
 
     // Pure events
@@ -110,20 +114,32 @@ namespace ClientEvents {
 	// StateChange Event (Packet ID: 7)
 	CLIENT_PACKET_EVENT_DECLARATION(StateChange)
 
-	// WorldSnapshot Event (Packet ID: 10)
+	// WorldSnapshot Event (Packet ID: 11)
 	CLIENT_PACKET_EVENT_DECLARATION(WorldSnapshot)
-
-	// EntityUpdate Event (Packet ID: 11)
-	CLIENT_PACKET_EVENT_DECLARATION(EntityUpdate)
-
-	// EntitySpawn Event (Packet ID: 12)
-	CLIENT_PACKET_EVENT_DECLARATION(EntitySpawn)
-
-	// EntityDestroy Event (Packet ID: 13)
-	CLIENT_PACKET_EVENT_DECLARATION(EntityDestroy)
 
 	// PlayerSpawn Event (Packet ID: 14)
 	CLIENT_PACKET_EVENT_DECLARATION(PlayerSpawn)
+
+	// PlayerUpdate Event (Packet ID: 15)
+	CLIENT_PACKET_EVENT_DECLARATION(PlayerUpdate)
+
+	// PlayerDestroy Event (Packet ID: 16)
+	CLIENT_PACKET_EVENT_DECLARATION(PlayerDestroy)
+
+	// EnemySpawn Event (Packet ID: 17)
+	CLIENT_PACKET_EVENT_DECLARATION(EnemySpawn)
+
+	// EnemyUpdate Event (Packet ID: 18)
+	CLIENT_PACKET_EVENT_DECLARATION(EnemyUpdate)
+
+	// EnemyDestroy Event (Packet ID: 19)
+	CLIENT_PACKET_EVENT_DECLARATION(EnemyDestroy)
+
+	// ObjectSpawn Event (Packet ID: 20)
+	CLIENT_PACKET_EVENT_DECLARATION(ObjectSpawn)
+
+	// ObjectDestroy Event (Packet ID: 21)
+	CLIENT_PACKET_EVENT_DECLARATION(ObjectDestroy)
 
 
     // Pure events

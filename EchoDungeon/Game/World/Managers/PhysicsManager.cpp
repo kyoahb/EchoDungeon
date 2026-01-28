@@ -1,14 +1,23 @@
 #include "PhysicsManager.h"
+#include "ServerWorldManager.h"
+#include "ClientWorldManager.h"
 
 void PhysicsManager::update(
-	std::unordered_map<uint16_t, Player>* players, 
-	std::unordered_map<uint16_t, Object>* objects) {
-	
-	if (!players || !objects) return;
+std::unordered_map<uint32_t, Player>* players,
+std::unordered_map<uint32_t, Enemy>* enemies,
+std::unordered_map<uint32_t, Object>* objects,
+ServerWorldManager* server_world_manager,
+ClientWorldManager* client_world_manager) {
+
+	if (!players || !objects && !enemies) return;
 
 	// Pre-calculate all object bounding boxes once per frame
-	std::unordered_map<uint16_t, raylib::BoundingBox> object_boxes;
+	std::unordered_map<uint32_t, raylib::BoundingBox> object_boxes;
 	object_boxes.reserve(objects->size());
+
+	// Pre-calculate all enemy bounding boxes once per frame
+	std::unordered_map<uint32_t, raylib::BoundingBox> enemy_boxes;
+	enemy_boxes.reserve(enemies->size());
 
 	for (auto& [object_id, object] : *objects) {
 		ObjectTransform& object_transform = object.transform;
@@ -30,6 +39,30 @@ void PhysicsManager::update(
 				object_pos.x + object_scale.x * 0.5f,
 				object_pos.y + object_scale.y * 0.5f,
 				object_pos.z + object_scale.z * 0.5f
+			)
+		);
+	}
+
+	for (auto& [enemy_id, enemy] : *enemies) {
+		ObjectTransform& enemy_transform = enemy.transform;
+
+		// Skip if enemy has no collision
+		if (!enemy_transform.get_has_collision()) continue;
+
+		raylib::Vector3 enemy_pos = enemy_transform.get_position();
+		raylib::Vector3 enemy_scale = enemy_transform.get_scale();
+
+		// Create and cache bounding box for this enemy
+		enemy_boxes[enemy_id] = raylib::BoundingBox(
+			raylib::Vector3(
+				enemy_pos.x - enemy_scale.x * 0.5f,
+				enemy_pos.y - enemy_scale.y * 0.5f,
+				enemy_pos.z - enemy_scale.z * 0.5f
+			),
+			raylib::Vector3(
+				enemy_pos.x + enemy_scale.x * 0.5f,
+				enemy_pos.y + enemy_scale.y * 0.5f,
+				enemy_pos.z + enemy_scale.z * 0.5f
 			)
 		);
 	}
@@ -101,6 +134,22 @@ void PhysicsManager::update(
 
 				// Apply pushback to player
 				player_transform.move(pushback);
+			}
+		}
+
+		// Check against all cached enemy bounding boxes
+		for (auto& [enemy_id, enemy_box] : enemy_boxes) {
+			// Get the actual enemy for position data (needed for pushback calculation)
+			auto ene_it = enemies->find(enemy_id);
+			if (ene_it == enemies->end()) continue;
+			Enemy& enemy = ene_it->second;
+			raylib::Vector3 enemy_pos = enemy.transform.get_position();
+			
+			// Check collision
+			if (player_box.CheckCollision(enemy_box)) {
+				player.health -= enemy.damage;
+				// TODO: Handle enemy collision (destroy enemy, apply damage, etc.)
+				// This will be implemented when enemy combat is fully designed
 			}
 		}
 	}

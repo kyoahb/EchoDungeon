@@ -5,7 +5,7 @@
 #include <cereal/types/vector.hpp>
 #include <cereal/types/unordered_map.hpp>
 
-// Packet type: 10
+// Packet type: 11
 // Packet name: WorldSnapshot
 
 /**
@@ -14,20 +14,20 @@
  */
 class WorldSnapshotPacket : public Packet {
 public:
-	std::unordered_map<uint16_t, Player> players; // All players in the world
-	std::unordered_map<uint16_t, Object> objects; // All objects in the world (keyed by object ID)
+	std::unordered_map<uint32_t, Player> players; // All players in the world
+	std::unordered_map<uint32_t, Object> objects; // All objects in the world (keyed by object ID)
 
 	// Default constructor
 	WorldSnapshotPacket()
-		: Packet(10, true) {
+		: Packet(11, true) {
 	}
 
 	// Constructor with data
 	WorldSnapshotPacket(
-		const std::unordered_map<uint16_t, Player>& _players,
-		const std::unordered_map<uint16_t, Object>& _objects
+		const std::unordered_map<uint32_t, Player>& _players,
+		const std::unordered_map<uint32_t, Object>& _objects
 	)
-		: Packet(10, true), players(_players), objects(_objects) {
+		: Packet(11, true), players(_players), objects(_objects) {
 	}
 
 	// Macros for serialization
