@@ -4,7 +4,7 @@ ObjectTransform::ObjectTransform()
 	: position(0.0f, 0.0f, 0.0f),
 	  rotation(0.0f, 0.0f, 0.0f),
 	  scale(1.0f, 1.0f, 1.0f),
-	  has_collision(false),
+	  has_collision(true),
 	  is_static(false){
 }
 

@@ -31,7 +31,7 @@ void World::on_activate() {
 		s_world_manager->spawn_object(
 			ObjectType::MODEL,
 			"cube",
-			raylib::Vector3{ 1.0f, 0.5f, 1.0f }
+			raylib::Vector3{ 1.0f, 1.0f, 1.0f }
 		);
 
 		// Broadcast initial world snapshot to all clients

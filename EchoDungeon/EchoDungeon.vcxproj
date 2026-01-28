@@ -145,6 +145,7 @@
     <ClCompile Include="Game\World\Assets\AssetMap.cpp" />
     <ClCompile Include="Game\World\Assets\AssetModel.cpp" />
     <ClCompile Include="Game\World\Managers\ClientWorldManager.cpp" />
+    <ClCompile Include="Game\World\Managers\PhysicsManager.cpp" />
     <ClCompile Include="Game\World\Managers\ServerWorldManager.cpp" />
     <ClCompile Include="Imports\common.cpp" />
     <ClCompile Include="Libraries\imgui\imgui.cpp" />
@@ -193,6 +194,7 @@
     <ClInclude Include="Game\World\Entities\ObjectTransform.h" />
     <ClInclude Include="Game\World\Assets\AssetModel.h" />
     <ClInclude Include="Game\World\Managers\ClientWorldManager.h" />
+    <ClInclude Include="Game\World\Managers\PhysicsManager.h" />
     <ClInclude Include="Game\World\Managers\ServerWorldManager.h" />
     <ClInclude Include="Imports\common.h" />
     <ClInclude Include="Libraries\enet\enet.h" />

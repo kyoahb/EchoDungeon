@@ -31,8 +31,8 @@ void ClientWorldManager::update(float delta_time) {
     // Update camera to follow local player
     update_camera(delta_time);
     
-    // TODO: Apply physics here when PhysicsManager is ready
-    // physics_manager.update(delta_time);
+    // Apply physics (collision checking)
+	PhysicsManager::update(&players, &objects);
 }
 
 void ClientWorldManager::draw_3d() {
