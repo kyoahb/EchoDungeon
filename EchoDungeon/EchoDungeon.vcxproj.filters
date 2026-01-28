@@ -141,6 +141,9 @@
     <ClCompile Include="Game\World\Managers\ClientWorldManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Game\World\Entities\Enemy.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Libraries\enet\enet.h">
@@ -483,6 +486,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Networking\Packet\Instances\RequestWorldSnapshot.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\World\Entities\Enemy.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

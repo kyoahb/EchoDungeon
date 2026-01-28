@@ -138,6 +138,7 @@
     <ClCompile Include="Game\World\Assets\AssetImage.cpp" />
     <ClCompile Include="Game\World\Assets\AssetImageModel.cpp" />
     <ClCompile Include="Game\World\Assets\AssetSound.cpp" />
+    <ClCompile Include="Game\World\Entities\Enemy.cpp" />
     <ClCompile Include="Game\World\Entities\Object.cpp" />
     <ClCompile Include="Game\World\Entities\Player.cpp" />
     <ClCompile Include="Game\World\Entities\ObjectTransform.cpp" />
@@ -185,6 +186,7 @@
     <ClInclude Include="Game\State\Instances\Settings.h" />
     <ClInclude Include="Game\State\Instances\World.h" />
     <ClInclude Include="Game\World\Assets\AssetSound.h" />
+    <ClInclude Include="Game\World\Entities\Enemy.h" />
     <ClInclude Include="Game\World\Entities\EntityType.h" />
     <ClInclude Include="Game\World\Entities\Object.h" />
     <ClInclude Include="Game\World\Entities\Player.h" />

@@ -6,14 +6,20 @@ class Player {
 public:
 	Player(uint16_t _id, bool _is_local, const std::string& _name);
 	Player();
-	virtual ~Player() {}  // AssetImageModel handles model unloading
+	virtual ~Player() {}
 
 	uint16_t id = 0; // ID linked to network entity
 	bool is_local = false; // Is this the local player?
 	std::string name = "?"; // Name rendered above the player
 
 	ObjectTransform transform; // Player transform (position, rotation, scale)
+
 	float health = 100.0f; // Player health
+	float damage = 10.0f; // Damage dealt by the player
+	float max_health = 100.0f; // Maximum health
+	float range = 2.0f; // Attack range
+	float speed = 2.0f;
+
 	std::string asset_id = "player";
 
 	void draw3D(const raylib::Camera3D& camera); // Draw the player model in 3D space
@@ -22,6 +28,8 @@ public:
 
 	template <typename Archive>
 	void serialize(Archive& archive) {
-		archive(id, is_local, name, transform, health, asset_id);
+		archive(id, is_local, name, 
+			transform, health, asset_id,
+			damage, max_health, range, speed);
 	}		
 };
