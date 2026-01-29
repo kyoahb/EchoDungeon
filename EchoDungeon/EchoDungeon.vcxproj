@@ -270,14 +270,10 @@
     <ClInclude Include="Networking\Packet\Instances\Enemy\EnemyDestroy.h" />
     <ClInclude Include="Networking\Packet\Instances\Enemy\EnemySpawn.h" />
     <ClInclude Include="Networking\Packet\Instances\Enemy\EnemyUpdate.h" />
-    <ClInclude Include="Networking\Packet\Instances\EntityDestroy.h" />
-    <ClInclude Include="Networking\Packet\Instances\EntitySpawn.h" />
-    <ClInclude Include="Networking\Packet\Instances\EntityUpdate.h" />
     <ClInclude Include="Networking\Packet\Instances\GeneralInformationUpdate.h" />
     <ClInclude Include="Networking\Packet\Instances\Object\ObjectDestroy.h" />
     <ClInclude Include="Networking\Packet\Instances\Object\ObjectSpawn.h" />
     <ClInclude Include="Networking\Packet\Instances\PlayerInput.h" />
-    <ClInclude Include="Networking\Packet\Instances\PlayerSpawn.h" />
     <ClInclude Include="Networking\Packet\Instances\Player\PlayerDestroy.h" />
     <ClInclude Include="Networking\Packet\Instances\Player\PlayerSpawn.h" />
     <ClInclude Include="Networking\Packet\Instances\Player\PlayerUpdate.h" />

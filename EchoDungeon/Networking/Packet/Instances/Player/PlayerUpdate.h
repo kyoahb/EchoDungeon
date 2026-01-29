@@ -14,7 +14,11 @@
 struct PlayerUpdateData {
 	uint32_t id = 0;                    // Player ID
 	ObjectTransform transform;          // Current transform
-	float health = 100.0f;              // Current health
+	float health = 100.0f; // Player health
+	float damage = 10.0f; // Damage dealt by the player
+	float max_health = 100.0f; // Maximum health
+	float range = 2.0f; // Attack range
+	float speed = 2.0f; // Units per second 
 
 	template<class Archive>
 	void serialize(Archive& archive) {

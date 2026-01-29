@@ -202,39 +202,87 @@ void World::setup_client_events() {
 			}
 		}
 	);
-	
-	// EntityUpdate - Receive entity position/health updates
-	client_entity_update_sub = ClientEvents::EntityUpdateEvent::register_callback(
-		[this](const ClientEvents::EntityUpdateEventData& data) {
+
+	// EnemySpawn - New enemy spawned in world
+	client_enemy_spawn_sub = ClientEvents::EnemySpawnEvent::register_callback(
+		[this](const ClientEvents::EnemySpawnEventData& data) {
 			if (c_world_manager) {
-				c_world_manager->apply_entity_updates(data.packet.updates);
+				Enemy e = Enemy(data.packet.id, data.packet.max_health, 
+					data.packet.speed, data.packet.damage, data.packet.asset_id);
+				e.transform = data.packet.transform;
+
+				c_world_manager->add_enemy(e);
+				TRACE("Spawned enemy: ID=" + std::to_string(e.id));
+			}
+		}
+	);
+
+	// EnemyUpdate - Enemy updated in world
+	client_enemy_update_sub = ClientEvents::EnemyUpdateEvent::register_callback(
+		[this](const ClientEvents::EnemyUpdateEventData& data) {
+			if (c_world_manager) {
+				for (const auto& update : data.packet.updates) {
+					c_world_manager->update_enemy(update.id, update.transform, update.health);
+					TRACE("Enemy updated: ID=" + std::to_string(update.id));
+				}
+			}
+		}
+	);
+
+	// EnemyDestroy - Enemy removed from world
+	client_enemy_destroy_sub = ClientEvents::EnemyDestroyEvent::register_callback(
+		[this](const ClientEvents::EnemyDestroyEventData& data) {
+			if (c_world_manager) {
+				c_world_manager->remove_enemy(data.packet.id);
+				TRACE("Enemy destroyed: ID=" + std::to_string(data.packet.id));
 			}
 		}
 	);
 	
-	// EntitySpawn - New object spawned in world
-	client_entity_spawn_sub = ClientEvents::EntitySpawnEvent::register_callback(
-		[this](const ClientEvents::EntitySpawnEventData& data) {
-				if (c_world_manager) {
-					c_world_manager->add_object(data.packet.object);
-					TRACE("Entity spawned: ID=" + std::to_string(data.packet.object.id));
-				}
+	// ObjectSpawn - New object spawned in world
+	client_object_spawn_sub = ClientEvents::ObjectSpawnEvent::register_callback(
+		[this](const ClientEvents::ObjectSpawnEventData& data) {
+			if (c_world_manager) {
+				Object o = Object(data.packet.id, data.packet.asset_id, data.packet.object_type);
+				o.transform = data.packet.transform;
+
+				c_world_manager->add_object(o);
+				TRACE("Spawned object: ID=" + std::to_string(o.id));
+			}
+		}
+	);
+
+	// ObjectDestroy - Object removed from world
+	client_object_destroy_sub = ClientEvents::ObjectDestroyEvent::register_callback(
+		[this](const ClientEvents::ObjectDestroyEventData& data) {
+			if (c_world_manager) {
+				c_world_manager->remove_object(data.packet.id);
+				TRACE("Destroyed object: ID=" + std::to_string(data.packet.id));
+			}
 		}
 	);
 	
-	// EntityDestroy - Object/player removed from world
-	client_entity_destroy_sub = ClientEvents::EntityDestroyEvent::register_callback(
-		[this](const ClientEvents::EntityDestroyEventData& data) {
-				if (c_world_manager) {
-					if (data.packet.entity_type == EntityType::PLAYER) {
-						c_world_manager->remove_player(data.packet.entity_id);
-						TRACE("Player removed: ID=" + std::to_string(data.packet.entity_id));
-					}
-					else if (data.packet.entity_type == EntityType::OBJECT) {
-						c_world_manager->remove_object(data.packet.entity_id);
-						TRACE("Object removed: ID=" + std::to_string(data.packet.entity_id));
-					}
+	// PlayerUpdate - New object spawned in world
+	client_player_update_sub = ClientEvents::PlayerUpdateEvent::register_callback(
+		[this](const ClientEvents::PlayerUpdateEventData& data) {
+			if (c_world_manager) {
+				for (const auto& update : data.packet.updates) {
+					c_world_manager->update_player(update.id, update.transform, update.health,
+						update.damage, update.max_health, update.range, update.speed
+					);
+					TRACE("Player updated: ID=" + std::to_string(update.id));
 				}
+			}
+		}
+	);
+	
+	// PlayerDestroy - Player removed from world
+	client_player_destroy_sub = ClientEvents::PlayerDestroyEvent::register_callback(
+		[this](const ClientEvents::PlayerDestroyEventData& data) {
+			if (c_world_manager) {
+				c_world_manager->remove_player(data.packet.id);
+				TRACE("Player removed: ID=" + std::to_string(data.packet.id));
+			}
 		}
 	);
 	
@@ -242,8 +290,14 @@ void World::setup_client_events() {
 	client_player_spawn_sub = ClientEvents::PlayerSpawnEvent::register_callback(
 		[this](const ClientEvents::PlayerSpawnEventData& data) {
 			if (c_world_manager) {
-				c_world_manager->add_player(data.packet.player);
-				TRACE("Player spawned: " + data.packet.player.name + " ID=" + std::to_string(data.packet.player.id));
+				Player p = Player(data.packet.id, false, data.packet.name);
+				p.damage = data.packet.damage;
+				p.health = data.packet.health;
+				p.max_health = data.packet.max_health;
+				p.speed = data.packet.speed;
+				p.transform = data.packet.transform;
+				c_world_manager->add_player(p);
+				TRACE("Player spawned: " + p.name + " ID=" + std::to_string(p.id));
 			}
 		}
 	);

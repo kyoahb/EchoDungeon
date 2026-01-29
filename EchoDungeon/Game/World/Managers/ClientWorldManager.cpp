@@ -91,19 +91,26 @@ void ClientWorldManager::remove_player(uint32_t peer_id) {
     players.erase(peer_id);
 }
 
-void ClientWorldManager::update_player(uint32_t peer_id, const ObjectTransform& transform, float health) {
-auto it = players.find(peer_id);
+void ClientWorldManager::update_player(uint32_t peer_id, 
+    const ObjectTransform& transform, float health, float damage, 
+    float max_health, float range, float speed) {
+
+    auto it = players.find(peer_id);
     if (it != players.end()) {
-        // Don't update local player from server (client-side prediction)
+        // Don't update local player from server, as it causes jittering
         if (peer_id != client->peers.local_server_side_id) {
             it->second.transform = transform;
             it->second.health = health;
+            it->second.damage = damage;
+            it->second.max_health = max_health;
+            it->second.range = range;
+            it->second.speed = speed;
         }
     }
 }
 
 Player* ClientWorldManager::get_player(uint32_t peer_id) {
-auto it = players.find(peer_id);
+    auto it = players.find(peer_id);
     return (it != players.end()) ? &it->second : nullptr;
 }
 
