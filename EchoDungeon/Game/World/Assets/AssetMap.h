@@ -1,6 +1,6 @@
 #pragma once
 #include "Imports/common.h"
-#include <unordered_map>
+#include <map>
 #include <optional>
 #include "AssetModel.h"
 #include "AssetImage.h"
@@ -9,10 +9,10 @@
 
 class AssetMap {
 public:
-	static std::unordered_map<std::string, AssetModel> models;
-	static std::unordered_map<std::string, AssetImage> images;
-	static std::unordered_map<std::string, AssetSound> sounds;
-	static std::unordered_map<std::string, AssetImageModel> image_models;
+	static std::map<std::string, AssetModel> models;
+	static std::map<std::string, AssetImage> images;
+	static std::map<std::string, AssetSound> sounds;
+	static std::map<std::string, AssetImageModel> image_models;
 
 	static void load(); // Pre-loads all models
 	static const AssetModel& get_model(const std::string& model_id);

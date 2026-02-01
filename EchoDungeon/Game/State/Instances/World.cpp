@@ -34,6 +34,14 @@ void World::on_activate() {
 			raylib::Vector3{ 1.0f, 1.0f, 1.0f }
 		);
 
+		s_world_manager->spawn_enemy(
+			100.0f,
+			1,
+			10.0f,
+			"zombie",
+			raylib::Vector3{ 10.0f, 1.0f, 10.0f }
+		);
+
 		// Broadcast initial world snapshot to all clients
 		s_world_manager->broadcast_world_snapshot();
 	}
@@ -223,7 +231,7 @@ void World::setup_client_events() {
 			if (c_world_manager) {
 				for (const auto& update : data.packet.updates) {
 					c_world_manager->update_enemy(update.id, update.transform, update.health);
-					TRACE("Enemy updated: ID=" + std::to_string(update.id));
+					TRACE("Enemy updated: ID=" + std::to_string(update.id) + "transform pos=" + update.transform.get_position().ToString());
 				}
 			}
 		}

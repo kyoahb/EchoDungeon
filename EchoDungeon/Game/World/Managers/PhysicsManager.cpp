@@ -148,8 +148,23 @@ ClientWorldManager* client_world_manager) {
 			// Check collision
 			if (player_box.CheckCollision(enemy_box)) {
 				player.health -= enemy.damage;
-				// TODO: Handle enemy collision (destroy enemy, apply damage, etc.)
-				// This will be implemented when enemy combat is fully designed
+				if (server_world_manager) {
+					INFO("SERVER-SIDE: Player " + std::to_string(player_id) + " took " + std::to_string(enemy.damage) + " damage from enemy " + std::to_string(enemy_id) + ". New health: " + std::to_string(player.health));
+					server_world_manager->destroy_enemy(enemy_id);
+				}
+				if (client_world_manager) {
+					INFO("CLIENT-SIDE: Player " + std::to_string(player_id) + " took " + std::to_string(enemy.damage) + " damage from enemy " + std::to_string(enemy_id) + ". New health: " + std::to_string(player.health));
+					client_world_manager->remove_enemy(enemy_id);
+					client_world_manager->update_player(
+						player_id,
+						player.transform,
+						player.health,
+						player.damage,
+						player.max_health,
+						player.range,
+						player.speed
+					);
+				}
 			}
 		}
 	}

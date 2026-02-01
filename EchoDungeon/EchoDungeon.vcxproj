@@ -166,7 +166,6 @@
     <ClCompile Include="Networking\Packet\PacketRegistryInit.cpp" />
     <ClCompile Include="Networking\Server\Server.cpp" />
     <ClCompile Include="Networking\Server\ServerPeerlist.cpp" />
-    <ClCompile Include="REFACTORING_NOTE_WorldCpp_setup_client_events.cpp" />
     <ClCompile Include="Utils\Input.cpp" />
     <ClCompile Include="Utils\Logger\Logger.cpp" />
     <ClCompile Include="Utils\UI.cpp" />

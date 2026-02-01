@@ -1,9 +1,9 @@
 #include "AssetMap.h"
 
-std::unordered_map<std::string, AssetModel> AssetMap::models = {};
-std::unordered_map<std::string, AssetImage> AssetMap::images = {};
-std::unordered_map<std::string, AssetSound> AssetMap::sounds = {};
-std::unordered_map<std::string, AssetImageModel> AssetMap::image_models = {};  // Added
+std::map<std::string, AssetModel> AssetMap::models = {};
+std::map<std::string, AssetImage> AssetMap::images = {};
+std::map<std::string, AssetSound> AssetMap::sounds = {};
+std::map<std::string, AssetImageModel> AssetMap::image_models = {};  // Added
 
 const AssetModel& AssetMap::get_model(const std::string& model_id) {
 	auto it = models.find(model_id);
@@ -37,8 +37,9 @@ const AssetSound& AssetMap::get_sound(const std::string& sound_id) {
 	}
 }
 
-const AssetImageModel& AssetMap::get_image_model(const std::string& image_id) {  // Added
+const AssetImageModel& AssetMap::get_image_model(const std::string& image_id) {
 	auto it = image_models.find(image_id);
+
 	if (it != image_models.end()) {
 		return it->second;  // Return a copy for per-instance use
 	} else {
@@ -58,6 +59,30 @@ void AssetMap::load() {
 	images.insert({
 		"player",
 		AssetImage("Assets/images/player.png")
+		});
+	images.insert({
+		"skeleton",
+		AssetImage("Assets/images/skeleton.png")
+		});
+	images.insert({
+		"goldskeleton",
+		AssetImage("Assets/images/goldskeleton.png")
+		});
+	images.insert({
+		"zombie",
+		AssetImage("Assets/images/zombie.png")
+		});
+	images.insert({
+		"goldzombie",
+		AssetImage("Assets/images/goldzombie.png")
+		});
+	images.insert({
+		"armour",
+		AssetImage("Assets/images/armour.png")
+		});
+	images.insert({
+		"sword",
+		AssetImage("Assets/images/sword.png")
 		});
 
 	// Add all sounds to be loaded here

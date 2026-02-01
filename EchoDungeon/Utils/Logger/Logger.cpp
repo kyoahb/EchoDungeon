@@ -25,7 +25,7 @@ void Logger::init() {
     logger->set_pattern("[%H:%M:%S:%e] [%^%l%$] %v");
 
     // Set log level to debug and set as default logger
-    logger->set_level(spdlog::level::info);
+    logger->set_level(spdlog::level::trace);
     spdlog::set_default_logger(logger);
 
     // Set initialised flag so it cannot be re-initialised unnecessarily

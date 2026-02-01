@@ -11,14 +11,24 @@ void ServerWorldManager::update(float delta_time) {
     auto now = std::chrono::steady_clock::now();
     auto elapsed = std::chrono::duration_cast<std::chrono::duration<float>>(now - last_update_time);
     
+    // Update enemies
+    for (auto& [enemy_id, enemy] : enemies) {
+        // Gather pointers to all players for enemy AI
+        std::vector<Player*> player_ptrs;
+        for (auto& [peer_id, player] : players) {
+            player_ptrs.push_back(&player);
+        }
+        enemy.tick(delta_time, player_ptrs);
+    }
+
+    // Update collisions
+    PhysicsManager::update(&players, &enemies, &objects, this, nullptr);
+
     // Send entity updates at fixed interval (20 Hz)
     if (elapsed.count() >= update_interval) {
         broadcast_entity_updates();
         last_update_time = now;
     }
-    
-    // Update collisions
-	PhysicsManager::update(&players, &enemies, &objects, this, nullptr);
 }
 
 void ServerWorldManager::clear() {
@@ -124,25 +134,22 @@ Enemy* ServerWorldManager::get_enemy(uint32_t enemy_id) {
     return (it != enemies.end()) ? &it->second : nullptr;
 }
 
-const std::unordered_map<uint32_t, Enemy>& ServerWorldManager::get_all_enemies() const {
-    return enemies; 
-}
-
 void ServerWorldManager::destroy_enemy(uint32_t enemy_id) {
     if (enemies.erase(enemy_id) > 0) {
         // Broadcast enemy destroy
+        INFO("Destroyed enemy: " + std::to_string(enemy_id));
         EnemyDestroyPacket packet(enemy_id);
         server->broadcast_packet(packet);
     }
 }
 
 void ServerWorldManager::broadcast_world_snapshot() {
-    WorldSnapshotPacket packet(players, objects);
+    WorldSnapshotPacket packet(players, objects, enemies);
     server->broadcast_packet(packet);
 }
 
 void ServerWorldManager::send_world_snapshot(ENetPeer* peer) {
-    WorldSnapshotPacket packet(players, objects);
+    WorldSnapshotPacket packet(players, objects, enemies);
     enet_peer_send(peer, 0, packet.to_enet_packet());
 }
 

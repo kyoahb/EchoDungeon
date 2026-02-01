@@ -30,6 +30,16 @@ void ClientWorldManager::update(float delta_time) {
     
     // Update camera to follow local player
     update_camera(delta_time);
+
+    // Tick enemies
+    for (auto& [enemy_id, enemy] : enemies) {
+        // Gather pointers to all players for enemy AI
+        std::vector<Player*> player_ptrs;
+        for (auto& [peer_id, player] : players) {
+            player_ptrs.push_back(&player);
+        }
+        enemy.tick(delta_time, player_ptrs);
+	}
     
     // Apply physics (collision checking)
 	PhysicsManager::update(&players, &enemies, &objects, nullptr, this);
@@ -43,6 +53,9 @@ void ClientWorldManager::draw_3d() {
     
     // Draw all enemies
     for (auto& [enemy_id, enemy] : enemies) {
+        INFO("Enemy EXISTS!");
+		DrawText("AWESOME", 10, 40, 20, BLUE);
+		DrawText(enemy.transform.get_position().ToString().c_str(), 10, 10, 20, RED);
         enemy.draw3D(camera);
     }
     
@@ -97,15 +110,15 @@ void ClientWorldManager::update_player(uint32_t peer_id,
 
     auto it = players.find(peer_id);
     if (it != players.end()) {
-        // Don't update local player from server, as it causes jittering
+        // Don't update local player's transform from server, as it causes jittering
         if (peer_id != client->peers.local_server_side_id) {
             it->second.transform = transform;
-            it->second.health = health;
-            it->second.damage = damage;
-            it->second.max_health = max_health;
-            it->second.range = range;
-            it->second.speed = speed;
         }
+        it->second.health = health;
+        it->second.damage = damage;
+        it->second.max_health = max_health;
+        it->second.range = range;
+        it->second.speed = speed;
     }
 }
 
@@ -143,6 +156,9 @@ void ClientWorldManager::update_enemy(uint32_t enemy_id, const ObjectTransform& 
         it->second.transform = transform;
         it->second.health = health;
     }
+    else {
+        TRACE("Updating an enemy that does not exist!");
+    }
 }
 
 Enemy* ClientWorldManager::get_enemy(uint32_t enemy_id) {
@@ -169,11 +185,17 @@ void ClientWorldManager::apply_world_snapshot(const WorldSnapshotPacket& snapsho
     for (const auto& [object_id, object] : snapshot.objects) {
         objects[object_id] = object;
     }
+
+    // Load all enemies
+    for (const auto& [enemy_id, enemy] : snapshot.enemies) {
+        TRACE("LOADED ENEMY!");
+        enemies[enemy_id] = enemy;
+    }
 }
 
 void ClientWorldManager::apply_player_updates(const std::vector<PlayerUpdateData>& updates) {
     for (const auto& update : updates) {
-        update_player(update.id, update.transform, update.health);
+        update_player(update.id, update.transform, update.health, update.damage, update.max_health, update.range, update.speed);
     }
 }
 

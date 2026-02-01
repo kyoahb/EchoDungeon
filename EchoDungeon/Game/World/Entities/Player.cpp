@@ -1,5 +1,6 @@
 #include "Player.h"
 #include "Utils/MathUtils.h"
+#include <windows.h>  // For SEH
 
 Player::Player() :
 	id(65534),
