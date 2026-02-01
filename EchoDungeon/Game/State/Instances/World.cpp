@@ -218,7 +218,8 @@ void World::setup_client_events() {
 				Enemy e = Enemy(data.packet.id, data.packet.max_health, 
 					data.packet.speed, data.packet.damage, data.packet.asset_id);
 				e.transform = data.packet.transform;
-
+				e.health = data.packet.health;
+				
 				c_world_manager->add_enemy(e);
 				TRACE("Spawned enemy: ID=" + std::to_string(e.id));
 			}
@@ -231,7 +232,8 @@ void World::setup_client_events() {
 			if (c_world_manager) {
 				for (const auto& update : data.packet.updates) {
 					c_world_manager->update_enemy(update.id, update.transform, update.health);
-					TRACE("Enemy updated: ID=" + std::to_string(update.id) + "transform pos=" + update.transform.get_position().ToString());
+					TRACE("Enemy updated: ID=" + std::to_string(update.id)
+						+ "transform pos=" + update.transform.get_position().ToString());
 				}
 			}
 		}

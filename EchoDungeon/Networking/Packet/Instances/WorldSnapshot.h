@@ -39,6 +39,6 @@ public:
 
 	template<class Archive>
 	void serialize(Archive& archive) {
-		archive(header, is_reliable, players, objects);
+		archive(header, is_reliable, players, objects, enemies);
 	}
 };

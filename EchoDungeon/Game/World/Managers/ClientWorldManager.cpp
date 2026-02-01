@@ -31,31 +31,36 @@ void ClientWorldManager::update(float delta_time) {
     // Update camera to follow local player
     update_camera(delta_time);
 
-    // Tick enemies
-    for (auto& [enemy_id, enemy] : enemies) {
-        // Gather pointers to all players for enemy AI
-        std::vector<Player*> player_ptrs;
-        for (auto& [peer_id, player] : players) {
-            player_ptrs.push_back(&player);
+    // Lock for enemy tick and physics update
+    {
+        std::lock_guard<std::mutex> lock(world_state_mutex);
+        
+        // Tick enemies
+        for (auto& [enemy_id, enemy] : enemies) {
+            // Gather pointers to all players for enemy AI
+            std::vector<Player*> player_ptrs;
+            for (auto& [peer_id, player] : players) {
+                player_ptrs.push_back(&player);
+            }
+            enemy.tick(delta_time, player_ptrs);
         }
-        enemy.tick(delta_time, player_ptrs);
-	}
-    
-    // Apply physics (collision checking)
-	PhysicsManager::update(&players, &enemies, &objects, nullptr, this);
+        
+        // Apply physics (collision checking)
+        PhysicsManager::update(&players, &enemies, &objects, nullptr, this);
+    }
 }
 
 void ClientWorldManager::draw_3d() {
+    std::lock_guard<std::mutex> lock(world_state_mutex);
+    
     // Draw all players
     for (auto& [peer_id, player] : players) {
         player.draw3D(camera);
     }
     
-    // Draw all enemies
-    for (auto& [enemy_id, enemy] : enemies) {
-        INFO("Enemy EXISTS!");
-		DrawText("AWESOME", 10, 40, 20, BLUE);
-		DrawText(enemy.transform.get_position().ToString().c_str(), 10, 10, 20, RED);
+    // Draw all enemies (avoid structured binding in case of map corruption)
+    for (auto it = enemies.begin(); it != enemies.end(); ++it) {
+        Enemy& enemy = it->second;
         enemy.draw3D(camera);
     }
     
@@ -143,14 +148,19 @@ auto it = objects.find(object_id);
 }
 
 void ClientWorldManager::add_enemy(const Enemy& enemy) {
+    std::lock_guard<std::mutex> lock(world_state_mutex);
     enemies[enemy.id] = enemy;
+    
 }
 
 void ClientWorldManager::remove_enemy(uint32_t enemy_id) {
+    std::lock_guard<std::mutex> lock(world_state_mutex);
     enemies.erase(enemy_id);
 }
 
 void ClientWorldManager::update_enemy(uint32_t enemy_id, const ObjectTransform& transform, float health) {
+    std::lock_guard<std::mutex> lock(world_state_mutex);
+    
     auto it = enemies.find(enemy_id);
     if (it != enemies.end()) {
         it->second.transform = transform;
@@ -162,6 +172,8 @@ void ClientWorldManager::update_enemy(uint32_t enemy_id, const ObjectTransform& 
 }
 
 Enemy* ClientWorldManager::get_enemy(uint32_t enemy_id) {
+    std::lock_guard<std::mutex> lock(world_state_mutex);
+    
     auto it = enemies.find(enemy_id);
     return (it != enemies.end()) ? &it->second : nullptr;
 }
@@ -169,6 +181,8 @@ Enemy* ClientWorldManager::get_enemy(uint32_t enemy_id) {
 
 
 void ClientWorldManager::apply_world_snapshot(const WorldSnapshotPacket& snapshot) {
+    std::lock_guard<std::mutex> lock(world_state_mutex);
+    
     clear();
     
     // Load all players
@@ -188,7 +202,6 @@ void ClientWorldManager::apply_world_snapshot(const WorldSnapshotPacket& snapsho
 
     // Load all enemies
     for (const auto& [enemy_id, enemy] : snapshot.enemies) {
-        TRACE("LOADED ENEMY!");
         enemies[enemy_id] = enemy;
     }
 }

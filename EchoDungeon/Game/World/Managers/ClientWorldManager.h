@@ -64,6 +64,9 @@ private:
     std::unordered_map<uint32_t, Object> objects;  // Keyed by object_id
     std::unordered_map<uint32_t, Enemy> enemies;  // Keyed by enemy_id
     
+    // Thread synchronization for world state
+    mutable std::mutex world_state_mutex;
+    
     // Camera
     raylib::Camera3D camera;
     

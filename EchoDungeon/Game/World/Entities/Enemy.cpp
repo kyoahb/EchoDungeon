@@ -18,9 +18,12 @@ Enemy::Enemy()
 }
 
 void Enemy::draw3D(const raylib::Camera3D& camera) {
+	raylib::Vector3 rot_vec = transform.get_rotation();
+	AxisAngle rot = MathUtils::EulerToAxisAngle(rot_vec);
 
-	AxisAngle rot = MathUtils::EulerToAxisAngle(transform.get_rotation());
-	AssetMap::get_image_model(asset_id).get().Draw(
+	const AssetImageModel& model = AssetMap::get_image_model(asset_id);
+			
+	model.get().Draw(
 		transform.get_position(),
 		rot.axis,
 		rot.angle,
@@ -46,7 +49,7 @@ void Enemy::tick(float delta_time, std::vector<Player*>& players) {
 	float closest_distance = FLT_MAX; // Set it to highest num possible
 
 	for (Player* player : players) {
-	float distance = player->transform.get_position().Distance(transform.get_position());
+		float distance = player->transform.get_position().Distance(transform.get_position());
 		if (distance < closest_distance) {
 			closest_distance = distance;
 			closest_player = player;
@@ -57,13 +60,15 @@ void Enemy::tick(float delta_time, std::vector<Player*>& players) {
 		raylib::Vector3 current_pos = transform.get_position();
 		raylib::Vector3 target_pos = closest_player->transform.get_position();
 		
-		// Calculate lerp amount based on speed and delta time
-		float lerp_amount = speed * delta_time;
-		// Clamp to prevent overshooting
-		lerp_amount = min(lerp_amount, 1.0f);
+		// Calculate direction vector from enemy to player
+		raylib::Vector3 direction = target_pos - current_pos;
 		
-		// Lerp towards the target
-		raylib::Vector3 new_pos = current_pos.Lerp(target_pos, lerp_amount);
+		// Normalize the direction (make it length 1)
+		direction = direction.Normalize();
+		
+		// Move at constant speed in that direction
+		raylib::Vector3 new_pos = current_pos + (direction * speed * delta_time);
+		
 		transform.set_position(new_pos);
 	}
 }

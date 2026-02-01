@@ -149,12 +149,16 @@ ClientWorldManager* client_world_manager) {
 			if (player_box.CheckCollision(enemy_box)) {
 				player.health -= enemy.damage;
 				if (server_world_manager) {
-					INFO("SERVER-SIDE: Player " + std::to_string(player_id) + " took " + std::to_string(enemy.damage) + " damage from enemy " + std::to_string(enemy_id) + ". New health: " + std::to_string(player.health));
+					INFO("SERVER-SIDE: Player " + std::to_string(player_id) +
+						" took " + std::to_string(enemy.damage) + " damage from enemy "
+						+ std::to_string(enemy_id) + ". New health: " + std::to_string(player.health));
 					server_world_manager->destroy_enemy(enemy_id);
+					// Player health is updated on the next frame anyway
 				}
 				if (client_world_manager) {
-					INFO("CLIENT-SIDE: Player " + std::to_string(player_id) + " took " + std::to_string(enemy.damage) + " damage from enemy " + std::to_string(enemy_id) + ". New health: " + std::to_string(player.health));
-					client_world_manager->remove_enemy(enemy_id);
+					INFO("CLIENT-SIDE: Player " + std::to_string(player_id) +
+						" took " + std::to_string(enemy.damage) + " damage from enemy "
+						+ std::to_string(enemy_id) + ". New health: " + std::to_string(player.health));
 					client_world_manager->update_player(
 						player_id,
 						player.transform,
