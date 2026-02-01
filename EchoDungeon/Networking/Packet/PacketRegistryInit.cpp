@@ -18,6 +18,7 @@
 #include "Networking/Packet/Instances/Object/ObjectDestroy.h"
 #include "Networking/Packet/Instances/PlayerInput.h"
 #include "Networking/Packet/Instances/RequestWorldSnapshot.h"
+#include "Networking/Packet/Instances/Player/PlayerAttack.h"
 
 #include "Game/Events/EventList.h"
 
@@ -63,6 +64,7 @@ void PacketRegistry::initializeRegistry() {
 	REGISTER_SERVER_PACKET(8, GeneralInformationUpdate);
 	REGISTER_SERVER_PACKET(9, PlayerInput);
     REGISTER_SERVER_PACKET(10, RequestWorldSnapshot);
+    REGISTER_SERVER_PACKET(22, PlayerAttack);
 
     // Server -> Client packets
     REGISTER_CLIENT_PACKET(2, ConnectionRefusal);

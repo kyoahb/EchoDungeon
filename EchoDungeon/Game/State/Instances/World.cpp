@@ -37,7 +37,7 @@ void World::on_activate() {
 		s_world_manager->spawn_enemy(
 			100.0f,
 			1,
-			10.0f,
+			100.0f,
 			"zombie",
 			raylib::Vector3{ 10.0f, 1.0f, 10.0f }
 		);
@@ -105,6 +105,10 @@ void World::on_deactivate() {
 			ServerEvents::RequestWorldSnapshotEvent::unregister_callback(server_request_snapshot_sub);
 			server_request_snapshot_sub = -1;
 		}
+		if (server_player_attack_sub != -1) {
+			ServerEvents::PlayerAttackEvent::unregister_callback(server_player_attack_sub);
+			server_player_attack_sub = -1;
+		}
 		if (server_player_disconnect_sub != -1) {
 			ServerEvents::DisconnectEvent::unregister_callback(server_player_disconnect_sub);
 			server_player_disconnect_sub = -1;
@@ -157,6 +161,7 @@ void World::update() {
 	// Set exit flag if disconnected
 	if (!game.client->is_connected()) {
 		should_quit_to_mainmenu.store(true);
+		return;
 	}
 
 	// Update ServerWorldManager (if hosting)
@@ -167,6 +172,22 @@ void World::update() {
 	if (c_world_manager->get_local_player() == nullptr) {
 		// The client has not received a server loading packet yet
 		DrawText("Loading world...", 10, 10, 20, BLACK);
+	}
+
+	// Check if local player is dead
+	if (c_world_manager->get_local_player() != nullptr &&
+		c_world_manager->get_local_player()->health <= 0.0f) {
+		// Spawn IMGUI window
+		ImGui::Begin("You Died", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
+			ImGui::Text("You have died. Return to the main menu?");
+
+			if (game.is_hosting()) {
+				ImGui::Text("As the host, returning to main menu will end the game for all players.");
+			}
+			if (ImGui::Button("Return to Main Menu")) {
+				should_quit_to_mainmenu.store(true);
+			}
+		ImGui::End();
 	}
 	
 	// Update ClientWorldManager
@@ -278,7 +299,8 @@ void World::setup_client_events() {
 			if (c_world_manager) {
 				for (const auto& update : data.packet.updates) {
 					c_world_manager->update_player(update.id, update.transform, update.health,
-						update.damage, update.max_health, update.range, update.speed
+						update.damage, update.max_health, update.range, update.speed,
+						update.attack_cooldown, update.last_attack_time, update.attacking
 					);
 					TRACE("Player updated: ID=" + std::to_string(update.id));
 				}
@@ -306,6 +328,10 @@ void World::setup_client_events() {
 				p.max_health = data.packet.max_health;
 				p.speed = data.packet.speed;
 				p.transform = data.packet.transform;
+				p.attack_cooldown = data.packet.attack_cooldown;
+				p.range = data.packet.range;
+				p.last_attack_time = data.packet.last_attack_time;
+
 				c_world_manager->add_player(p);
 				TRACE("Player spawned: " + p.name + " ID=" + std::to_string(p.id));
 			}
@@ -334,6 +360,20 @@ void World::setup_server_events() {
 				// Send world snapshot to the requesting client only
 				s_world_manager->send_world_snapshot(data.peer);
 				TRACE("Sent world snapshot to peer");
+			}
+		}
+	);
+
+	// PlayerAttack - Client attacks
+	server_player_attack_sub = ServerEvents::PlayerAttackEvent::register_callback(
+		[this](const ServerEvents::PlayerAttackEventData& data) {
+			if (s_world_manager) {
+				auto peer_opt = game.server->peers.get_peer_by_enet(data.peer);
+				if (peer_opt.has_value()) {
+					uint16_t peer_id = peer_opt.value().data.server_side_id;
+					s_world_manager->handle_player_attack(peer_id);
+					TRACE("Player attacked: ID=" + std::to_string(peer_id));
+				}
 			}
 		}
 	);

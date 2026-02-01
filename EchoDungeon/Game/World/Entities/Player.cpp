@@ -35,9 +35,17 @@ void Player::draw2D(const raylib::Camera3D& camera) {
 	DrawText(name.c_str(), (int)screen_pos.x - text_width / 2, (int)screen_pos.y - 20, 20, BLACK);
 
 	// Draw health number below the name
-	std::string health_text = "HP: " + std::to_string(static_cast<int>(health));
-	int health_text_width = MeasureText(health_text.c_str(), 18);
-	DrawText(health_text.c_str(), (int)screen_pos.x - health_text_width / 2, (int)screen_pos.y, 18, DARKGREEN);
+	if (is_dead()) {
+		std::string dead = "DEAD";
+		int health_text_width = MeasureText(dead.c_str(), 18);
+		DrawText(dead.c_str(), (int)screen_pos.x - health_text_width / 2, (int)screen_pos.y, 18, RED);
+	}
+	else {
+		std::string health_text = "HP: " + std::to_string(static_cast<int>(health));
+		int health_text_width = MeasureText(health_text.c_str(), 18);
+		DrawText(health_text.c_str(), (int)screen_pos.x - health_text_width / 2, (int)screen_pos.y, 18, DARKGREEN);
+	}
+
 }
 
 void Player::move(const raylib::Vector3& delta) {

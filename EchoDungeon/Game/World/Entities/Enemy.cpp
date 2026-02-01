@@ -49,6 +49,9 @@ void Enemy::tick(float delta_time, std::vector<Player*>& players) {
 	float closest_distance = FLT_MAX; // Set it to highest num possible
 
 	for (Player* player : players) {
+		// Skip dead players
+		if (player->is_dead()) continue; 
+
 		float distance = player->transform.get_position().Distance(transform.get_position());
 		if (distance < closest_distance) {
 			closest_distance = distance;

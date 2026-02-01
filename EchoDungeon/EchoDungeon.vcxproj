@@ -273,6 +273,7 @@
     <ClInclude Include="Networking\Packet\Instances\Object\ObjectDestroy.h" />
     <ClInclude Include="Networking\Packet\Instances\Object\ObjectSpawn.h" />
     <ClInclude Include="Networking\Packet\Instances\PlayerInput.h" />
+    <ClInclude Include="Networking\Packet\Instances\Player\PlayerAttack.h" />
     <ClInclude Include="Networking\Packet\Instances\Player\PlayerDestroy.h" />
     <ClInclude Include="Networking\Packet\Instances\Player\PlayerSpawn.h" />
     <ClInclude Include="Networking\Packet\Instances\Player\PlayerUpdate.h" />

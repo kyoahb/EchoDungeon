@@ -19,6 +19,12 @@ public:
 	float max_health = 100.0f; // Maximum health
 	float range = 2.0f; // Attack range
 	float speed = 2.0f; // Units per second 
+	uint64_t attack_cooldown = 500; // Milliseconds between attacks
+
+	bool attacking = false; // Is the player currently attacking?
+	uint64_t last_attack_time = 0; // Timestamp of last attack (milliseconds)
+
+	bool is_dead() const { return health <= 0.0f; }
 
 	std::string asset_id = "player";
 

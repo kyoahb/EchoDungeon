@@ -53,6 +53,7 @@ public:
     void broadcast_entity_updates();  // Send delta updates (called every tick)
 
     void handle_player_input(uint32_t peer_id, const ObjectTransform& input_transform);
+    void handle_player_attack(uint32_t peer_id);
 
 private:
     std::shared_ptr<Server> server;  // Reference to server for broadcasting

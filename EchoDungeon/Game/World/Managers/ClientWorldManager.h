@@ -35,7 +35,8 @@ public:
     void add_player(const Player& player);
     void remove_player(uint32_t peer_id);
     void update_player(uint32_t peer_id, const ObjectTransform& transform, float health,
-        float damage, float max_health, float range, float speed);
+        float damage, float max_health, float range, float speed, uint64_t attack_cooldown, 
+        uint64_t last_attack_time, bool attacking);
     Player* get_player(uint32_t peer_id);
     const std::unordered_map<uint32_t, Player>& get_all_players() const { return players; }
     

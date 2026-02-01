@@ -34,6 +34,7 @@ private:
 	// Server-side event subscription IDs
 	int server_player_input_sub = -1;
 	int server_request_snapshot_sub = -1;
+	int server_player_attack_sub = -1;
 	int server_player_disconnect_sub = -1;
 	int server_player_disconnect_timeout_sub = -1;
 

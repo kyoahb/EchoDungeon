@@ -1,6 +1,8 @@
 #include "ClientWorldManager.h"
 #include "Networking/Client/Client.h"
 #include "Utils/Input.h"
+#include "Utils/NetUtils.h"
+#include "Networking/Packet/Instances/Player/PlayerAttack.h"
 
 ClientWorldManager::ClientWorldManager(std::shared_ptr<Client> client)
     : client(client), last_input_send_time(std::chrono::steady_clock::now()) {
@@ -14,8 +16,9 @@ ClientWorldManager::ClientWorldManager(std::shared_ptr<Client> client)
 }
 
 void ClientWorldManager::update(float delta_time) {
-    // Process local player input
-    if (client->peers.local_server_side_id != 0) {
+
+    // Process local player input ONLY IF player exists and is alive
+    if (client->peers.local_server_side_id != 0 && get_local_player() && !get_local_player()->is_dead()) {
         process_local_player_input(delta_time);
         
         // Send input to server if enough time has passed
@@ -56,6 +59,13 @@ void ClientWorldManager::draw_3d() {
     // Draw all players
     for (auto& [peer_id, player] : players) {
         player.draw3D(camera);
+        
+        // Draw attack range circle if player is attacking (filled disc)
+        if (player.attacking) {
+            raylib::Vector3 player_pos = player.transform.get_position();
+            // Use a very short cylinder to create a filled disc on the ground
+            DrawCylinder(player_pos, player.range, player.range, 0.05f, 32, ColorAlpha(RED, 0.5f));
+        }
     }
     
     // Draw all enemies (avoid structured binding in case of map corruption)
@@ -111,7 +121,7 @@ void ClientWorldManager::remove_player(uint32_t peer_id) {
 
 void ClientWorldManager::update_player(uint32_t peer_id, 
     const ObjectTransform& transform, float health, float damage, 
-    float max_health, float range, float speed) {
+    float max_health, float range, float speed, uint64_t attack_cooldown, uint64_t last_attack_time, bool attacking) {
 
     auto it = players.find(peer_id);
     if (it != players.end()) {
@@ -124,6 +134,9 @@ void ClientWorldManager::update_player(uint32_t peer_id,
         it->second.max_health = max_health;
         it->second.range = range;
         it->second.speed = speed;
+        it->second.attack_cooldown = attack_cooldown;
+        it->second.last_attack_time = last_attack_time;
+        it->second.attacking = attacking;
     }
 }
 
@@ -208,7 +221,9 @@ void ClientWorldManager::apply_world_snapshot(const WorldSnapshotPacket& snapsho
 
 void ClientWorldManager::apply_player_updates(const std::vector<PlayerUpdateData>& updates) {
     for (const auto& update : updates) {
-        update_player(update.id, update.transform, update.health, update.damage, update.max_health, update.range, update.speed);
+        update_player(update.id, update.transform, update.health,
+            update.damage, update.max_health, update.range, update.speed, update.attack_cooldown,
+            update.last_attack_time, update.attacking);
     }
 }
 
@@ -254,6 +269,13 @@ void ClientWorldManager::process_local_player_input(float delta_time) {
     Player* local_player = get_local_player();
     if (!local_player) return;
     
+    uint64_t current_time = NetUtils::get_current_time_millis();
+    
+    // Reset attacking flag after 200ms for visual feedback
+    if (local_player->attacking && (current_time - local_player->last_attack_time) > 200) {
+        local_player->attacking = false;
+    }
+    
     // Get input
     raylib::Vector3 movement = {0.0f, 0.0f, 0.0f};
     
@@ -267,6 +289,17 @@ void ClientWorldManager::process_local_player_input(float delta_time) {
         // Apply movement
         local_player->move(movement.Normalize() * local_player->speed * delta_time);
     }
+
+    // Check for player attack input
+    if (Input::is_key_pressed(KEY_SPACE)) {
+        // Send attack packet if cooldown is ready
+        if ((current_time - local_player->last_attack_time) >= local_player->attack_cooldown) {
+            local_player->attacking = true;
+            local_player->last_attack_time = current_time;
+            PlayerAttackPacket attack_packet(local_player->id);
+            client->send_packet(attack_packet);
+        }
+	}
 }
 
 bool ClientWorldManager::has_local_player_moved() const {

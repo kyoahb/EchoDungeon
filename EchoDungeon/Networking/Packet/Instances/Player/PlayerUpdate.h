@@ -19,10 +19,14 @@ struct PlayerUpdateData {
 	float max_health = 100.0f; // Maximum health
 	float range = 2.0f; // Attack range
 	float speed = 2.0f; // Units per second 
+	uint64_t attack_cooldown = 500; // Milliseconds between attacks
+
+	uint64_t last_attack_time = 0; // Timestamp of last attack (milliseconds)
+	bool attacking = false; // Is the player currently attacking?
 
 	template<class Archive>
 	void serialize(Archive& archive) {
-		archive(id, transform, health);
+		archive(id, transform, health, damage, max_health, range, speed, attack_cooldown, last_attack_time, attacking);
 	}
 };
 

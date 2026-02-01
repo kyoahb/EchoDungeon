@@ -19,6 +19,7 @@
 #include "Networking/Packet/Instances/Object/ObjectDestroy.h"
 #include "Networking/Packet/Instances/PlayerInput.h"
 #include "Networking/Packet/Instances/RequestWorldSnapshot.h"
+#include "Networking/Packet/Instances/Player/PlayerAttack.h"
 
 #define SERVER_PACKET_EVENT_DECLARATION(BaseName) \
     class BaseName##EventData : public BaseEventData { \
@@ -59,6 +60,9 @@ namespace ServerEvents {
 
     // RequestWorldSnapshot Event (Packet ID: 10)
     SERVER_PACKET_EVENT_DECLARATION(RequestWorldSnapshot)
+
+    // PlayerAttack Event (Packet ID: 22)
+    SERVER_PACKET_EVENT_DECLARATION(PlayerAttack)
 
     // Pure events
 

@@ -71,8 +71,8 @@ ClientWorldManager* client_world_manager) {
 	for (auto& [player_id, player] : *players) {
 		ObjectTransform& player_transform = player.transform;
 		
-		// Skip if player has no collision
-		if (!player_transform.get_has_collision()) continue;
+		// Skip if player has no collision or is dead
+		if (!player_transform.get_has_collision() || player.is_dead()) continue;
 
 		raylib::Vector3 player_pos = player_transform.get_position();
 		raylib::Vector3 player_scale = player_transform.get_scale();
@@ -147,8 +147,8 @@ ClientWorldManager* client_world_manager) {
 			
 			// Check collision
 			if (player_box.CheckCollision(enemy_box)) {
-				player.health -= enemy.damage;
 				if (server_world_manager) {
+					player.health -= enemy.damage;
 					INFO("SERVER-SIDE: Player " + std::to_string(player_id) +
 						" took " + std::to_string(enemy.damage) + " damage from enemy "
 						+ std::to_string(enemy_id) + ". New health: " + std::to_string(player.health));
@@ -159,15 +159,6 @@ ClientWorldManager* client_world_manager) {
 					INFO("CLIENT-SIDE: Player " + std::to_string(player_id) +
 						" took " + std::to_string(enemy.damage) + " damage from enemy "
 						+ std::to_string(enemy_id) + ". New health: " + std::to_string(player.health));
-					client_world_manager->update_player(
-						player_id,
-						player.transform,
-						player.health,
-						player.damage,
-						player.max_health,
-						player.range,
-						player.speed
-					);
 				}
 			}
 		}

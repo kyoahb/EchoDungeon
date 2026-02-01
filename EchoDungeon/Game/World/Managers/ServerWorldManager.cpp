@@ -1,5 +1,6 @@
 #include "ServerWorldManager.h"
 #include "Networking/Server/Server.h"
+#include "Utils/NetUtils.h"
 #include <sstream>
 #include <iomanip>
 
@@ -53,6 +54,8 @@ void ServerWorldManager::add_player(uint32_t peer_id, const std::string& name) {
         player.damage,
         player.range,
         player.speed,
+		player.attack_cooldown,
+        player.last_attack_time,
         player.asset_id
     );
     server->broadcast_packet(packet);
@@ -178,6 +181,13 @@ void ServerWorldManager::collect_player_updates(std::vector<PlayerUpdateData>& u
         update.id = peer_id;
         update.transform = player.transform;
         update.health = player.health;
+		update.damage = player.damage;
+		update.max_health = player.max_health;
+		update.range = player.range;
+		update.speed = player.speed;
+		update.attack_cooldown = player.attack_cooldown;
+		update.last_attack_time = player.last_attack_time;
+		update.attacking = player.attacking;
         updates.push_back(update);
     }
 }
@@ -196,9 +206,12 @@ void ServerWorldManager::collect_enemy_updates(std::vector<EnemyUpdateData>& upd
 
 
 void ServerWorldManager::handle_player_input(uint32_t peer_id, const ObjectTransform& input_transform) {
-Player* player = get_player(peer_id);
+    Player* player = get_player(peer_id);
     if (!player) return;
     
+    // Ensure player is not dead
+	if (player->is_dead()) return;
+
     // Validate the transform (anti-cheat, collision, etc.)
     if (validate_player_transform(*player, input_transform)) {
         player->transform = input_transform;
@@ -206,12 +219,55 @@ Player* player = get_player(peer_id);
     }
 }
 
+void ServerWorldManager::handle_player_attack(uint32_t peer_id) {
+    Player* player = get_player(peer_id);
+    if (!player) return;
+
+    // Ensure player is not dead
+    if (player->is_dead()) return;
+
+    uint64_t current_time = NetUtils::get_current_time_millis();
+
+    // Check cooldown
+    if ((current_time - player->last_attack_time) < player->attack_cooldown) {
+        return; // Still on cooldown, ignore attack
+    }
+
+    // Reset attack cooldown with current timestamp
+    player->attacking = true;
+    player->last_attack_time = current_time;
+
+    // Get player position
+    raylib::Vector3 player_pos = player->transform.get_position();
+
+    // Find and damage all enemies within range
+    std::vector<uint32_t> enemies_to_destroy;
+    for (auto& [enemy_id, enemy] : enemies) {
+        raylib::Vector3 enemy_pos = enemy.transform.get_position();
+        
+        // Circle collision check (distance <= range)
+            float distance = player_pos.Distance(enemy_pos);
+            if (distance <= player->range) {
+                // Apply damage
+                enemy.health -= player->damage;
+            
+                INFO("Player " + std::to_string(peer_id) + " attacked enemy " + std::to_string(enemy_id) + 
+                     " for " + std::to_string(player->damage) + " damage");
+            
+                // Mark for destruction if dead
+                if (enemy.health <= 0.0f) {
+                    enemies_to_destroy.push_back(enemy_id);
+                }
+            }
+        }
+
+    // Destroy dead enemies
+    for (uint32_t enemy_id : enemies_to_destroy) {
+        destroy_enemy(enemy_id);
+    }
+}
+
 bool ServerWorldManager::validate_player_transform(const Player& player, const ObjectTransform& new_transform) {
-    // TODO: Add validation logic
-    // - Check speed
-    // - Check collision with world geometry
-    // - Check bounds (prevent going out of map)
-    
     // For now, accept all transforms
     return true;
 }
