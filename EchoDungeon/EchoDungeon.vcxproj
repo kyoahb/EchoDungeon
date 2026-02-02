@@ -189,6 +189,8 @@
     <ClInclude Include="Game\World\Assets\AssetSound.h" />
     <ClInclude Include="Game\World\Entities\Enemy.h" />
     <ClInclude Include="Game\World\Entities\EntityType.h" />
+    <ClInclude Include="Game\World\Entities\Inventory.h" />
+    <ClInclude Include="Game\World\Entities\Item.h" />
     <ClInclude Include="Game\World\Entities\Object.h" />
     <ClInclude Include="Game\World\Entities\Player.h" />
     <ClInclude Include="Game\World\Entities\ObjectTransform.h" />

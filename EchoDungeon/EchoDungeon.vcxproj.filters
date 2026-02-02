@@ -144,6 +144,9 @@
     <ClCompile Include="Game\World\Managers\PhysicsManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Game\World\Entities\Enemy.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Libraries\enet\enet.h">
@@ -461,18 +464,6 @@
     <ClInclude Include="Networking\Packet\Instances\WorldSnapshot.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Networking\Packet\Instances\EntityUpdate.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Networking\Packet\Instances\EntitySpawn.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Networking\Packet\Instances\EntityDestroy.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Networking\Packet\Instances\PlayerSpawn.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Networking\Packet\Instances\PlayerInput.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -489,6 +480,42 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Game\World\Managers\PhysicsManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\World\Entities\Enemy.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Networking\Packet\Instances\Enemy\EnemyDestroy.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Networking\Packet\Instances\Enemy\EnemySpawn.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Networking\Packet\Instances\Enemy\EnemyUpdate.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Networking\Packet\Instances\Object\ObjectDestroy.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Networking\Packet\Instances\Object\ObjectSpawn.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Networking\Packet\Instances\Player\PlayerAttack.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Networking\Packet\Instances\Player\PlayerDestroy.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Networking\Packet\Instances\Player\PlayerSpawn.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Networking\Packet\Instances\Player\PlayerUpdate.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\World\Entities\Item.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\World\Entities\Inventory.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
