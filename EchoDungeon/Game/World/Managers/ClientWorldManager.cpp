@@ -3,6 +3,9 @@
 #include "Utils/Input.h"
 #include "Utils/NetUtils.h"
 #include "Networking/Packet/Instances/Player/PlayerAttack.h"
+#include "Networking/Packet/Instances/PlayerInput.h"
+#include "Networking/Packet/Instances/Item/ItemDiscard.h"
+#include "Libraries/raylib-imgui-compat/rlImGui.h"
 
 ClientWorldManager::ClientWorldManager(std::shared_ptr<Client> client)
     : client(client), last_input_send_time(std::chrono::steady_clock::now()) {
@@ -29,6 +32,11 @@ void ClientWorldManager::update(float delta_time) {
             send_local_player_input();
             last_input_send_time = now;
         }
+    }
+    
+    // Check for inventory toggle
+    if (Input::is_key_pressed(KEY_E)) {
+        toggle_inventory();
     }
     
     // Update camera to follow local player
@@ -90,12 +98,17 @@ void ClientWorldManager::draw_2d() {
     for (auto& [enemy_id, enemy] : enemies) {
         enemy.draw2D(camera);
     }
+    
+    // Draw inventory UI
+    draw_inventory_ui();
 }
 
 void ClientWorldManager::clear() {
     players.clear();
     objects.clear();
     enemies.clear();
+    items.clear();
+    show_inventory = false;
 }
 
 
@@ -121,7 +134,7 @@ void ClientWorldManager::remove_player(uint32_t peer_id) {
 
 void ClientWorldManager::update_player(uint32_t peer_id, 
     const ObjectTransform& transform, float health, float damage, 
-    float max_health, float range, float speed, uint64_t attack_cooldown, uint64_t last_attack_time, bool attacking) {
+    float max_health, float range, float speed, uint64_t attack_cooldown, uint64_t last_attack_time, bool attacking, const Inventory& inventory) {
 
     auto it = players.find(peer_id);
     if (it != players.end()) {
@@ -137,6 +150,7 @@ void ClientWorldManager::update_player(uint32_t peer_id,
         it->second.attack_cooldown = attack_cooldown;
         it->second.last_attack_time = last_attack_time;
         it->second.attacking = attacking;
+        it->second.inventory = inventory;
     }
 }
 
@@ -223,7 +237,7 @@ void ClientWorldManager::apply_player_updates(const std::vector<PlayerUpdateData
     for (const auto& update : updates) {
         update_player(update.id, update.transform, update.health,
             update.damage, update.max_health, update.range, update.speed, update.attack_cooldown,
-            update.last_attack_time, update.attacking);
+            update.last_attack_time, update.attacking, update.inventory);
     }
 }
 
@@ -312,4 +326,242 @@ bool ClientWorldManager::has_local_player_moved() const {
     
     float distance = Vector3Distance(current_pos, last_pos);
     return distance > 0.01f;  // Threshold to avoid sending tiny movements
+}
+
+void ClientWorldManager::handle_item_pickup(uint32_t player_id, const Item& item) {
+    std::lock_guard<std::mutex> lock(world_state_mutex);
+    
+    // Store item in client registry
+    items[item.id] = item;
+    
+    // Get player
+    Player* player = get_player(player_id);
+    if (!player) return;
+    
+    // Add to inventory
+    player->inventory.add_item(item.id);
+    
+    // Apply effects
+    player->apply_item_effects(item.effects);
+    
+    INFO("CLIENT: Player " + std::to_string(player_id) + 
+         " picked up item: " + item.item_name);
+}
+
+void ClientWorldManager::request_item_discard(uint32_t item_id) {
+    ItemDiscardPacket packet(item_id);
+    client->send_packet(packet);
+    
+    INFO("CLIENT: Requested discard of item: " + std::to_string(item_id));
+}
+
+void ClientWorldManager::toggle_inventory() {
+    show_inventory = !show_inventory;
+}
+
+Item* ClientWorldManager::get_item(uint32_t item_id) {
+    auto it = items.find(item_id);
+    return (it != items.end()) ? &it->second : nullptr;
+}
+
+void ClientWorldManager::draw_inventory_ui() {
+    if (!show_inventory) return;
+    
+    Player* local_player = get_local_player();
+    if (!local_player) return;
+    
+    // Set window size and styling
+    ImGui::SetNextWindowSize(ImVec2(650, 750), ImGuiCond_FirstUseEver);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(15, 15));
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(10, 10));
+    
+    ImGui::Begin("Inventory", &show_inventory);
+    
+    ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), "Press E to close");
+    ImGui::Separator();
+    ImGui::Spacing();
+    
+    // ===== PLAYER STATS PANEL =====
+    ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 1.0f);
+    ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.3f, 0.5f, 0.8f, 1.0f)); // Blue border
+    ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.15f, 0.2f, 0.25f, 0.9f)); // Darker background
+    
+    ImGui::BeginChild("PlayerStats", ImVec2(0, 180), true);
+    
+    // Header
+    ImGui::TextColored(ImVec4(0.5f, 0.8f, 1.0f, 1.0f), "Current Stats");
+    ImGui::Separator();
+    ImGui::Spacing();
+    
+    // Display stats in two columns
+    ImGui::Columns(2, "StatsColumns", false);
+    
+    // Left column
+    ImGui::Text("Health:");
+    ImGui::SameLine(120);
+    ImGui::TextColored(ImVec4(0.9f, 0.3f, 0.3f, 1.0f), "%.0f / %.0f", local_player->health, local_player->max_health);
+    
+    ImGui::Text("Damage:");
+    ImGui::SameLine(120);
+    ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.2f, 1.0f), "%.0f", local_player->damage);
+    
+    ImGui::Text("Speed:");
+    ImGui::SameLine(120);
+    ImGui::TextColored(ImVec4(0.3f, 0.9f, 0.9f, 1.0f), "%.0f", local_player->speed);
+    
+    // Right column
+    ImGui::NextColumn();
+    
+    ImGui::Text("Range:");
+    ImGui::SameLine(120);
+    ImGui::TextColored(ImVec4(0.9f, 0.9f, 0.3f, 1.0f), "%.0f", local_player->range);
+    
+    ImGui::Text("Cooldown:");
+    ImGui::SameLine(120);
+    ImGui::TextColored(ImVec4(0.7f, 0.5f, 1.0f, 1.0f), "%llu ms", local_player->attack_cooldown);
+    
+    ImGui::Text("Items:");
+    ImGui::SameLine(120);
+    ImGui::TextColored(ImVec4(0.5f, 1.0f, 0.5f, 1.0f), "%zu", local_player->inventory.item_ids.size());
+    
+    ImGui::Columns(1);
+    
+    ImGui::EndChild();
+    ImGui::PopStyleColor(2);
+    ImGui::PopStyleVar(2);
+    
+    ImGui::Spacing();
+    ImGui::Separator();
+    ImGui::Spacing();
+    
+    // ===== ITEMS SECTION =====
+    ImGui::TextColored(ImVec4(0.8f, 0.8f, 0.8f, 1.0f), "Items:");
+    ImGui::Spacing();
+    
+    if (local_player->inventory.item_ids.empty()) {
+        ImGui::TextColored(ImVec4(0.6f, 0.6f, 0.6f, 1.0f), "No items in inventory");
+    } else {
+        for (uint32_t item_id : local_player->inventory.item_ids) {
+            Item* item = get_item(item_id);
+            if (!item) continue;
+            
+            // Create a bordered child window for each item
+            ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.0f);
+            ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 1.0f);
+            ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.4f, 0.4f, 0.4f, 1.0f));
+            
+            std::string child_id = "item_" + std::to_string(item_id);
+            ImGui::BeginChild(child_id.c_str(), ImVec2(0, 180), true);
+            
+            // Left side: Image
+            ImGui::BeginGroup();
+            
+            try {
+                const AssetImage& asset = AssetMap::get_image(item->asset_id);
+                Texture2D tex = asset.texture;
+                rlImGuiImageSize(&tex, 80, 80);
+            } catch (...) {
+                // If image not found, show placeholder
+                ImGui::Dummy(ImVec2(80, 80));
+                ImGui::SameLine();
+                ImGui::SetCursorPosX(ImGui::GetCursorPosX() - 40);
+                ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 35);
+                ImGui::TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1.0f), "[IMG]");
+                ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 35);
+            }
+            
+            ImGui::EndGroup();
+            
+            ImGui::SameLine();
+            
+            // Right side: Item info and stats
+            ImGui::BeginGroup();
+            
+            // Item name with larger font
+            ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[0]); // Use default font (can be made larger)
+            ImGui::TextWrapped("%s", item->item_name.c_str());
+            ImGui::PopFont();
+            
+            ImGui::Spacing();
+            
+            // Stats section
+            const ItemEffects& e = item->effects;
+            bool has_stats = false;
+            
+            // Helper lambda for colored stat display
+            auto display_stat = [&](const char* label, int value, const char* suffix = "") {
+                if (value == 0) return;
+                has_stats = true;
+                ImVec4 color = value > 0 ? ImVec4(0.2f, 0.8f, 0.2f, 1.0f) : ImVec4(0.9f, 0.2f, 0.2f, 1.0f);
+                ImGui::TextColored(color, "  %s: %+d%s", label, value, suffix);
+            };
+            
+            auto display_stat_float = [&](const char* label, float value, const char* suffix = "") {
+                if (value == 0.0f) return;
+                has_stats = true;
+                ImVec4 color = value > 0 ? ImVec4(0.2f, 0.8f, 0.2f, 1.0f) : ImVec4(0.9f, 0.2f, 0.2f, 1.0f);
+                ImGui::TextColored(color, "  %s: %+.1f%s", label, value, suffix);
+            };
+            
+            // Display all stats with color coding
+            if (e.max_health_boost != 0) 
+                display_stat("Max Health", e.max_health_boost);
+            if (e.max_health_percentage_boost != 0) 
+                display_stat_float("Max Health", e.max_health_percentage_boost * 100, "%");
+            if (e.damage_boost != 0) 
+                display_stat("Damage", e.damage_boost);
+            if (e.damage_percentage_boost != 0) 
+                display_stat_float("Damage", e.damage_percentage_boost * 100, "%");
+            if (e.speed_boost != 0) 
+                display_stat("Speed", e.speed_boost);
+            if (e.speed_percentage_boost != 0) 
+                display_stat_float("Speed", e.speed_percentage_boost * 100, "%");
+            if (e.range_boost != 0) 
+                display_stat("Range", e.range_boost);
+            if (e.range_percentage_boost != 0) 
+                display_stat_float("Range", e.range_percentage_boost * 100, "%");
+            if (e.atk_cooldown_reduction != 0) 
+                display_stat("Attack Speed", e.atk_cooldown_reduction, " ms");
+            if (e.atk_cooldown_percent_reduction != 0) 
+                display_stat_float("Attack Speed", e.atk_cooldown_percent_reduction * 100, "%");
+            if (e.healing != 0) {
+                ImGui::TextColored(ImVec4(0.2f, 0.8f, 0.2f, 1.0f), "  Healing: +%d (one-time)", e.healing);
+                has_stats = true;
+            }
+            if (e.healing_percentage != 0) {
+                ImGui::TextColored(ImVec4(0.2f, 0.8f, 0.2f, 1.0f), "  Healing: +%.1f%% (one-time)", e.healing_percentage * 100);
+                has_stats = true;
+            }
+            
+            if (!has_stats) {
+                ImGui::TextColored(ImVec4(0.6f, 0.6f, 0.6f, 1.0f), "  No effects");
+            }
+            
+            ImGui::EndGroup();
+            
+            // Discard button at bottom right
+            ImGui::SetCursorPosY(ImGui::GetWindowHeight() - 35);
+            ImGui::SetCursorPosX(ImGui::GetWindowWidth() - 120);
+            
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.2f, 0.2f, 1.0f));
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.8f, 0.3f, 0.3f, 1.0f));
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.9f, 0.1f, 0.1f, 1.0f));
+            
+            if (ImGui::Button(("Discard##" + std::to_string(item_id)).c_str(), ImVec2(100, 25))) {
+                request_item_discard(item_id);
+            }
+            
+            ImGui::PopStyleColor(3);
+            
+            ImGui::EndChild();
+            ImGui::PopStyleColor();
+            ImGui::PopStyleVar(2);
+            
+            ImGui::Spacing();
+        }
+    }
+    
+    ImGui::End();
+    ImGui::PopStyleVar(2);
 }

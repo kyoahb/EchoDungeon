@@ -1,5 +1,6 @@
 #pragma once
 #include "Imports/common.h"
+#include <cereal/types/string.hpp>
 
 struct ItemEffects {
 public:
@@ -12,14 +13,21 @@ public:
 	int damage_boost = 0; // Increases damage
 	float damage_percentage_boost = 0; // Increases damage by percentage
 
-	int speed_boost = 0; // Increases movement speed
+	float speed_boost = 0; // Increases movement speed
 	float speed_percentage_boost = 0; // Increases movement speed by percentage
 
-	int range_boost = 0; // Increases attack range
+	float range_boost = 0; // Increases attack range
 	float range_percentage_boost = 0; // Increases attack range by percentage
 
 	int atk_cooldown_reduction = 0; // Reduces attack cooldown by flat amount (in milliseconds)
 	float atk_cooldown_percent_reduction = 0; // Reduces attack cooldown by percentage
+
+	template <typename Archive>
+	void serialize(Archive& archive) {
+		archive(healing, healing_percentage, max_health_boost, max_health_percentage_boost,
+			damage_boost, damage_percentage_boost, speed_boost, speed_percentage_boost,
+			range_boost, range_percentage_boost, atk_cooldown_reduction, atk_cooldown_percent_reduction);
+	}
 };
 
 class Item {
@@ -28,17 +36,19 @@ public:
 	Item(uint32_t _id,
 		const std::string& _asset_id,
 		const std::string& _item_name,
-		const std::string& _item_description,
 		const ItemEffects& _effects):
 		id(_id), asset_id(_asset_id), item_name(_item_name),
-		item_description(_item_description), effects(_effects) {}
+		effects(_effects) {}
 
 	Item() = default;
 
 	uint32_t id = 0;
 	std::string asset_id = "sword";
 	std::string item_name = "Default Item";
-	std::string item_description = "Description";
 	ItemEffects effects;
 	
+	template <typename Archive>
+	void serialize(Archive& archive) {
+		archive(id, asset_id, item_name, effects);
+	}
 };

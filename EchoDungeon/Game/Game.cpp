@@ -21,8 +21,8 @@ Game::Game() : state_manager(GameStateManager()){
 
 
 	// Setup raylib window
-	const int screenWidth = 720;
-	const int screenHeight = 480;
+	const int screenWidth = 1280;
+	const int screenHeight = 720;
 
 	window = raylib::Window(screenWidth, screenHeight, "Echo Dungeon");
 	rlImGuiSetup(true); // Setup Raylib ImGUI connection

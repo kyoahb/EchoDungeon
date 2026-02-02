@@ -1,6 +1,7 @@
 #pragma once
 #include "Networking/Packet/Packet.h"
 #include "Game/World/Entities/ObjectTransform.h"
+#include "Game/World/Entities/Inventory.h"
 #include <cereal/types/vector.hpp>
 
 // Packet type: 15
@@ -23,10 +24,11 @@ struct PlayerUpdateData {
 
 	uint64_t last_attack_time = 0; // Timestamp of last attack (milliseconds)
 	bool attacking = false; // Is the player currently attacking?
+	Inventory inventory;  // Player inventory
 
 	template<class Archive>
 	void serialize(Archive& archive) {
-		archive(id, transform, health, damage, max_health, range, speed, attack_cooldown, last_attack_time, attacking);
+		archive(id, transform, health, damage, max_health, range, speed, attack_cooldown, last_attack_time, attacking, inventory);
 	}
 };
 

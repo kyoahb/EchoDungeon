@@ -147,6 +147,12 @@
     <ClCompile Include="Game\World\Entities\Enemy.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Game\World\Entities\Inventory.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\World\Systems\ItemGenerator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Libraries\enet\enet.h">
@@ -518,9 +524,19 @@
     <ClInclude Include="Game\World\Entities\Inventory.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Game\World\Systems\ItemGenerator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Networking\Packet\Instances\Item\ItemDiscard.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Networking\Packet\Instances\Item\ItemPickup.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Docs\WorldSynchronization.md" />
     <None Include="Docs\WorldManagerArchitecture.md" />
+    <None Include="Docs\InventoryItemSystemPlan.md" />
   </ItemGroup>
 </Project>

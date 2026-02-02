@@ -3,7 +3,7 @@
 #include "Game/World/Assets/AssetMap.h"
 #include "Game/World/Entities/Object.h"
 #include "Game/World/Entities/Player.h"
-#include "Networking/Packet/Instances/PlayerInput.h"
+#include "Game/World/Entities/Item.h"
 #include "Networking/Packet/Instances/WorldSnapshot.h"
 #include "Networking/Packet/Instances/Player/PlayerUpdate.h"
 #include "Networking/Packet/Instances/Enemy/EnemyUpdate.h"
@@ -36,7 +36,7 @@ public:
     void remove_player(uint32_t peer_id);
     void update_player(uint32_t peer_id, const ObjectTransform& transform, float health,
         float damage, float max_health, float range, float speed, uint64_t attack_cooldown, 
-        uint64_t last_attack_time, bool attacking);
+        uint64_t last_attack_time, bool attacking, const Inventory& inventory);
     Player* get_player(uint32_t peer_id);
     const std::unordered_map<uint32_t, Player>& get_all_players() const { return players; }
     
@@ -54,6 +54,13 @@ public:
     void apply_enemy_updates(const std::vector<EnemyUpdateData>& updates);
     void send_local_player_input();  // Send local player transform to server
 
+    // Item system
+    void handle_item_pickup(uint32_t player_id, const Item& item);
+    void request_item_discard(uint32_t item_id);
+    void toggle_inventory();
+    void draw_inventory_ui();
+    Item* get_item(uint32_t item_id);
+
     raylib::Camera3D& get_camera() { return camera; }
     void update_camera(float delta_time);  // Update camera to follow local player
 
@@ -64,12 +71,16 @@ private:
     std::unordered_map<uint32_t, Player> players;  // Keyed by peer_id
     std::unordered_map<uint32_t, Object> objects;  // Keyed by object_id
     std::unordered_map<uint32_t, Enemy> enemies;  // Keyed by enemy_id
+    std::unordered_map<uint32_t, Item> items;  // Client-side item copies
     
     // Thread synchronization for world state
     mutable std::mutex world_state_mutex;
     
     // Camera
     raylib::Camera3D camera;
+    
+    // Inventory UI
+    bool show_inventory = false;
     
     // Input tracking
     std::chrono::steady_clock::time_point last_input_send_time;

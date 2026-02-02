@@ -30,6 +30,7 @@ private:
 	int client_enemy_destroy_sub = -1;
 	int client_object_spawn_sub = -1;
 	int client_object_destroy_sub = -1;
+	int client_item_pickup_sub = -1;
 
 	// Server-side event subscription IDs
 	int server_player_input_sub = -1;
@@ -37,6 +38,7 @@ private:
 	int server_player_attack_sub = -1;
 	int server_player_disconnect_sub = -1;
 	int server_player_disconnect_timeout_sub = -1;
+	int server_item_discard_sub = -1;
 
 	std::atomic<bool> should_quit_to_mainmenu = false;
 };

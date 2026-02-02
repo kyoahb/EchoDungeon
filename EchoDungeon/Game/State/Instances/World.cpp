@@ -37,7 +37,7 @@ void World::on_activate() {
 		s_world_manager->spawn_enemy(
 			100.0f,
 			1,
-			100.0f,
+			10.0f,
 			"zombie",
 			raylib::Vector3{ 10.0f, 1.0f, 10.0f }
 		);
@@ -94,6 +94,10 @@ void World::on_deactivate() {
 		ClientEvents::ObjectDestroyEvent::unregister_callback(client_object_destroy_sub);
 		client_object_destroy_sub = -1;
 	}
+	if (client_item_pickup_sub != -1) {
+		ClientEvents::ItemPickupEvent::unregister_callback(client_item_pickup_sub);
+		client_item_pickup_sub = -1;
+	}
 	
 	// Unsubscribe from server events (if hosting)
 	if (game.is_hosting()) {
@@ -116,6 +120,10 @@ void World::on_deactivate() {
 		if (server_player_disconnect_timeout_sub != -1) {
 			ServerEvents::DisconnectTimeoutEvent::unregister_callback(server_player_disconnect_timeout_sub);
 			server_player_disconnect_timeout_sub = -1;
+		}
+		if (server_item_discard_sub != -1) {
+			ServerEvents::ItemDiscardEvent::unregister_callback(server_item_discard_sub);
+			server_item_discard_sub = -1;
 		}
 	}
 	
@@ -300,7 +308,8 @@ void World::setup_client_events() {
 				for (const auto& update : data.packet.updates) {
 					c_world_manager->update_player(update.id, update.transform, update.health,
 						update.damage, update.max_health, update.range, update.speed,
-						update.attack_cooldown, update.last_attack_time, update.attacking
+						update.attack_cooldown, update.last_attack_time, update.attacking,
+						update.inventory
 					);
 					TRACE("Player updated: ID=" + std::to_string(update.id));
 				}
@@ -334,6 +343,18 @@ void World::setup_client_events() {
 
 				c_world_manager->add_player(p);
 				TRACE("Player spawned: " + p.name + " ID=" + std::to_string(p.id));
+			}
+		}
+	);
+	
+	// ItemPickup - Player picked up an item
+	client_item_pickup_sub = ClientEvents::ItemPickupEvent::register_callback(
+		[this](const ClientEvents::ItemPickupEventData& data) {
+			if (c_world_manager) {
+				c_world_manager->handle_item_pickup(
+					data.packet.player_id,
+					data.packet.item
+				);
 			}
 		}
 	);
@@ -402,6 +423,20 @@ void World::setup_server_events() {
 					s_world_manager->remove_player(peer_id);
 					TRACE("Removed timed-out player: ID=" + std::to_string(peer_id));
 				}
+			}
+		}
+	);
+	
+	// ItemDiscard - Player discards an item
+	server_item_discard_sub = ServerEvents::ItemDiscardEvent::register_callback(
+		[this](const ServerEvents::ItemDiscardEventData& data) {
+			if (s_world_manager) {
+				auto peer_opt = game.server->peers.get_peer_by_enet(data.peer);
+				if (!peer_opt.has_value()) return;
+				s_world_manager->handle_item_discard(
+					peer_opt.value().data.server_side_id,
+					data.packet.item_id
+				);
 			}
 		}
 	);

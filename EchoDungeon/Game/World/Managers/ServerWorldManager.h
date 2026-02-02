@@ -3,6 +3,7 @@
 #include "Game/World/Assets/AssetMap.h"
 #include "Game/World/Entities/Object.h"
 #include "Game/World/Entities/Player.h"
+#include "Game/World/Entities/Item.h"
 #include "Networking/Packet/Instances/WorldSnapshot.h"
 #include "Networking/Packet/Instances/Player/PlayerSpawn.h"
 #include "Networking/Packet/Instances/Player/PlayerUpdate.h"
@@ -55,6 +56,13 @@ public:
     void handle_player_input(uint32_t peer_id, const ObjectTransform& input_transform);
     void handle_player_attack(uint32_t peer_id);
 
+	uint64_t get_elapsed_gametime() const;  // Num of ms passed since the game started
+
+    // Item system
+    uint32_t create_item_for_player(uint32_t player_id);
+    void handle_item_discard(uint32_t player_id, uint32_t item_id);
+    Item* get_item(uint32_t item_id);
+
 private:
     std::shared_ptr<Server> server;  // Reference to server for broadcasting
     
@@ -62,10 +70,18 @@ private:
     std::unordered_map<uint32_t, Player> players;  // Keyed by peer_id
     std::unordered_map<uint32_t, Object> objects;  // Keyed by object id
 	std::unordered_map<uint32_t, Enemy> enemies; // Keyed by enemy id
+    std::unordered_map<uint32_t, Item> items;  // Keyed by item id
 
     
     // Entity ID generation
     uint32_t next_object_id = 1;
+    uint32_t next_item_id = 1;
+    
+    // Item drop configuration
+    float item_drop_chance = 0.3f;  // 30% chance to drop item on enemy death
+    
+    // Game start time for difficulty scaling
+    std::chrono::steady_clock::time_point game_start_time;
     
     // Update tracking
     std::chrono::steady_clock::time_point last_update_time;

@@ -19,6 +19,8 @@
 #include "Networking/Packet/Instances/PlayerInput.h"
 #include "Networking/Packet/Instances/RequestWorldSnapshot.h"
 #include "Networking/Packet/Instances/Player/PlayerAttack.h"
+#include "Networking/Packet/Instances/Item/ItemPickup.h"
+#include "Networking/Packet/Instances/Item/ItemDiscard.h"
 
 #include "Game/Events/EventList.h"
 
@@ -65,6 +67,7 @@ void PacketRegistry::initializeRegistry() {
 	REGISTER_SERVER_PACKET(9, PlayerInput);
     REGISTER_SERVER_PACKET(10, RequestWorldSnapshot);
     REGISTER_SERVER_PACKET(22, PlayerAttack);
+    REGISTER_SERVER_PACKET(24, ItemDiscard);
 
     // Server -> Client packets
     REGISTER_CLIENT_PACKET(2, ConnectionRefusal);
@@ -87,4 +90,7 @@ void PacketRegistry::initializeRegistry() {
 	// Object packets (Server -> Client)
 	REGISTER_CLIENT_PACKET(20, ObjectSpawn);
 	REGISTER_CLIENT_PACKET(21, ObjectDestroy);
+	
+	// Item packets (Server -> Client)
+	REGISTER_CLIENT_PACKET(23, ItemPickup);
 }

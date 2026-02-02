@@ -1,11 +1,14 @@
 #include "ServerWorldManager.h"
 #include "Networking/Server/Server.h"
 #include "Utils/NetUtils.h"
+#include "Game/World/Systems/ItemGenerator.h"
+#include "Networking/Packet/Instances/Item/ItemPickup.h"
 #include <sstream>
 #include <iomanip>
 
 ServerWorldManager::ServerWorldManager(std::shared_ptr<Server> server)
-    : server(server), last_update_time(std::chrono::steady_clock::now()) {
+    : server(server), last_update_time(std::chrono::steady_clock::now()), 
+      game_start_time(std::chrono::steady_clock::now()) {
 }
 
 void ServerWorldManager::update(float delta_time) {
@@ -35,7 +38,9 @@ void ServerWorldManager::update(float delta_time) {
 void ServerWorldManager::clear() {
     players.clear();
     objects.clear();
+    items.clear();
     next_object_id = 0;
+    next_item_id = 1;
 }
 
 
@@ -56,7 +61,8 @@ void ServerWorldManager::add_player(uint32_t peer_id, const std::string& name) {
         player.speed,
 		player.attack_cooldown,
         player.last_attack_time,
-        player.asset_id
+        player.asset_id,
+        player.inventory
     );
     server->broadcast_packet(packet);
 }
@@ -188,6 +194,7 @@ void ServerWorldManager::collect_player_updates(std::vector<PlayerUpdateData>& u
 		update.attack_cooldown = player.attack_cooldown;
 		update.last_attack_time = player.last_attack_time;
 		update.attacking = player.attacking;
+		update.inventory = player.inventory;
         updates.push_back(update);
     }
 }
@@ -264,6 +271,12 @@ void ServerWorldManager::handle_player_attack(uint32_t peer_id) {
     // Destroy dead enemies
     for (uint32_t enemy_id : enemies_to_destroy) {
         destroy_enemy(enemy_id);
+        
+        // RNG for item drop
+        float roll = (float)rand() / RAND_MAX;
+        if (roll <= item_drop_chance) {
+            create_item_for_player(peer_id);
+        }
     }
 }
 
@@ -271,3 +284,67 @@ bool ServerWorldManager::validate_player_transform(const Player& player, const O
     // For now, accept all transforms
     return true;
 }
+
+uint64_t ServerWorldManager::get_elapsed_gametime() const {
+    auto now = std::chrono::steady_clock::now();
+    uint64_t game_time_ms = std::chrono::duration_cast<std::chrono::milliseconds>(now - game_start_time).count();
+    
+    return game_time_ms;
+}
+
+uint32_t ServerWorldManager::create_item_for_player(uint32_t player_id) {
+    Player* player = get_player(player_id);
+    if (!player) return 0;
+    
+    // Generate random item (use ItemGenerator)
+    uint32_t item_id = next_item_id++;
+    Item item = ItemGenerator::generate_random_item(item_id, get_elapsed_gametime());
+    
+    // Store item in registry
+    items[item_id] = item;
+    
+    // Add to player inventory
+    player->inventory.add_item(item_id);
+    
+    // Apply item effects to player (including healing)
+    player->apply_item_effects(item.effects);
+    
+    // Broadcast item pickup to all clients
+    ItemPickupPacket packet(player_id, item);
+    server->broadcast_packet(packet);
+    
+    INFO("Player " + std::to_string(player_id) + 
+         " received item: " + item.item_name);
+    
+    return item_id;
+}
+
+void ServerWorldManager::handle_item_discard(uint32_t player_id, uint32_t item_id) {
+    Player* player = get_player(player_id);
+    if (!player) return;
+    
+    // Check if player has this item
+    if (!player->inventory.has_item(item_id)) {
+        ERROR("Player " + std::to_string(player_id) + 
+             " tried to discard item they don't have: " + 
+             std::to_string(item_id));
+        return;
+    }
+    
+    // Remove from inventory and recalculate stats
+    player->remove_item_effects(item_id, items);
+    
+    // Remove from item registry
+    items.erase(item_id);
+    
+    INFO("Player " + std::to_string(player_id) + 
+         " discarded item: " + std::to_string(item_id));
+    
+    // Note: No packet broadcast needed, next PlayerUpdate will sync stats
+}
+
+Item* ServerWorldManager::get_item(uint32_t item_id) {
+    auto it = items.find(item_id);
+    return (it != items.end()) ? &it->second : nullptr;
+}
+

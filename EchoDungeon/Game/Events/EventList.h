@@ -20,6 +20,8 @@
 #include "Networking/Packet/Instances/PlayerInput.h"
 #include "Networking/Packet/Instances/RequestWorldSnapshot.h"
 #include "Networking/Packet/Instances/Player/PlayerAttack.h"
+#include "Networking/Packet/Instances/Item/ItemPickup.h"
+#include "Networking/Packet/Instances/Item/ItemDiscard.h"
 
 #define SERVER_PACKET_EVENT_DECLARATION(BaseName) \
     class BaseName##EventData : public BaseEventData { \
@@ -63,6 +65,9 @@ namespace ServerEvents {
 
     // PlayerAttack Event (Packet ID: 22)
     SERVER_PACKET_EVENT_DECLARATION(PlayerAttack)
+
+    // ItemDiscard Event (Packet ID: 24)
+    SERVER_PACKET_EVENT_DECLARATION(ItemDiscard)
 
     // Pure events
 
@@ -144,6 +149,9 @@ namespace ClientEvents {
 
 	// ObjectDestroy Event (Packet ID: 21)
 	CLIENT_PACKET_EVENT_DECLARATION(ObjectDestroy)
+
+	// ItemPickup Event (Packet ID: 23)
+	CLIENT_PACKET_EVENT_DECLARATION(ItemPickup)
 
 
     // Pure events
