@@ -7,40 +7,40 @@
 std::mt19937 ItemGenerator::rng(std::chrono::steady_clock::now().time_since_epoch().count());
 
 // Healing
-const static int MIN_HEALING = -5;
+const static int MIN_HEALING = -10;
 const static int MAX_HEALING = 10;
-const static float MIN_HEALING_PERCENT = -0.1f;
-const static float MAX_HEALING_PERCENT = 0.2f;
+const static float MIN_HEALING_PERCENT = -0.4f;
+const static float MAX_HEALING_PERCENT = 0.4f;
 
 // Max Health
 const static int MIN_MAX_HEALTH_BOOST = -5;
-const static int MAX_MAX_HEALTH_BOOST = 10;
+const static int MAX_MAX_HEALTH_BOOST = 5;
 const static float MIN_MAX_HEALTH_PERCENT_BOOST = -0.1f;
-const static float MAX_MAX_HEALTH_PERCENT_BOOST = 0.2f;
+const static float MAX_MAX_HEALTH_PERCENT_BOOST = 0.1f;
 
 // Damage
-const static int MIN_DAMAGE_BOOST = -3;
-const static int MAX_DAMAGE_BOOST = 5;
-const static float MIN_DAMAGE_PERCENT_BOOST = -0.1f;
-const static float MAX_DAMAGE_PERCENT_BOOST = 0.3f;
+const static int MIN_DAMAGE_BOOST = -2;
+const static int MAX_DAMAGE_BOOST = 2;
+const static float MIN_DAMAGE_PERCENT_BOOST = -0.2f;
+const static float MAX_DAMAGE_PERCENT_BOOST = 0.2f;
 
 // Speed
-const static float MIN_SPEED_BOOST = -2.0f;
-const static float MAX_SPEED_BOOST = 4.0f;
+const static float MIN_SPEED_BOOST = -1.0f;
+const static float MAX_SPEED_BOOST = 1.0f;
 const static float MIN_SPEED_PERCENT_BOOST = -0.1f;
-const static float MAX_SPEED_PERCENT_BOOST = 0.3f;
+const static float MAX_SPEED_PERCENT_BOOST = 0.1f;
 
 // Range
 const static float MIN_RANGE_BOOST = -1.0f;
-const static float MAX_RANGE_BOOST = 2.0f;
+const static float MAX_RANGE_BOOST = 1.0f;
 const static float MIN_RANGE_PERCENT_BOOST = -0.1f;
-const static float MAX_RANGE_PERCENT_BOOST = 0.3f;
+const static float MAX_RANGE_PERCENT_BOOST = 0.1f;
 
 // Attack Cooldown
-const static int MIN_ATK_COOLDOWN_REDUCTION = -50;
-const static int MAX_ATK_COOLDOWN_REDUCTION = 100;
-const static float MIN_ATK_COOLDOWN_PERCENT_REDUCTION = -0.1f;
-const static float MAX_ATK_COOLDOWN_PERCENT_REDUCTION = 0.3f;
+const static int MIN_ATK_COOLDOWN_REDUCTION = -10;
+const static int MAX_ATK_COOLDOWN_REDUCTION = 10;
+const static float MIN_ATK_COOLDOWN_PERCENT_REDUCTION = -0.2;
+const static float MAX_ATK_COOLDOWN_PERCENT_REDUCTION = 0.2f;
 
 // Enum to represent all possible stats
 enum class StatType {
@@ -67,8 +67,8 @@ Item ItemGenerator::generate_random_item(uint32_t item_id, uint64_t game_time_ms
 	
 	// Determine how many stats this item will have
 	// Range: 1 to total number of possible stats
-	std::uniform_int_distribution<int> num_stats_dist(1, static_cast<int>(StatType::COUNT));
-	int num_stats = num_stats_dist(rng);
+	std::binomial_distribution<int> num_stats_dist(static_cast<int>(StatType::COUNT)-1, (1- 0.8f*difficulty));
+	int num_stats = 1 + num_stats_dist(rng);
 	
 	// Create a list of all possible stats and shuffle it
 	std::vector<StatType> available_stats;
@@ -106,13 +106,12 @@ Item ItemGenerator::generate_random_item(uint32_t item_id, uint64_t game_time_ms
 				break;
 				
 			case StatType::DamageBoost:
-				effects.damage_boost = static_cast<int>(
-					generate_value(MIN_DAMAGE_BOOST, MAX_DAMAGE_BOOST));
+				effects.damage_boost = generate_value(MIN_DAMAGE_BOOST, MAX_DAMAGE_BOOST);
 				break;
 				
 			case StatType::DamagePercentBoost:
 				effects.damage_percentage_boost = 
-					generate_value(MIN_DAMAGE_PERCENT_BOOST, MAX_DAMAGE_PERCENT_BOOST	);
+					generate_value(MIN_DAMAGE_PERCENT_BOOST, MAX_DAMAGE_PERCENT_BOOST);
 				break;
 				
 			case StatType::SpeedBoost:
@@ -173,18 +172,18 @@ Item ItemGenerator::generate_random_item(uint32_t item_id, uint64_t game_time_ms
 }
 
 float ItemGenerator::get_difficulty_multiplier(uint64_t game_time_ms) {
-	// Difficulty scales with time: 1.0x to 10.0x
+	// Difficulty scales with time: 1.0x to 5.0x
 	float seconds = game_time_ms / 1000.0f;
 	
-	// Decay exponential curve
-	float T = 1800.0f; // 30 minutes to reach near max
-	float k = 0.004f; // Steepness
-
-	float normalised = 1.0f / (1.0f + std::exp(-k * (seconds - T*0.5)));
-	float multiplier = 1.0f + 9.0f * normalised;
+	// Exponential decay curve
+	float multiplier = 1.0f + 5.0f * (1 - std::exp(-(1 / 1500) * seconds));
+	// 1.0x at 0s
+	// ~2.6x at 600s (10 min)
+	// ~3.8x at 1200s (20 min)
+	// ~4.5x at 1800s (30 min)
 
 	// Cap at 10.0x
-	return min(multiplier, 10.0f);
+	return min(multiplier, 5.0f);
 }
 
 std::string ItemGenerator::generate_item_name(const ItemEffects& effects, std::vector<float> dist_rolls, float difficulty) {

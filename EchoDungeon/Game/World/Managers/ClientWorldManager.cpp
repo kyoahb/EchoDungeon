@@ -525,18 +525,10 @@ void ClientWorldManager::draw_inventory_ui() {
                 display_stat("Attack Speed", e.atk_cooldown_reduction, " ms");
             if (e.atk_cooldown_percent_reduction != 0) 
                 display_stat_float("Attack Speed", e.atk_cooldown_percent_reduction * 100, "%");
-            if (e.healing != 0) {
-                ImGui::TextColored(ImVec4(0.2f, 0.8f, 0.2f, 1.0f), "  Healing: +%d (one-time)", e.healing);
-                has_stats = true;
-            }
-            if (e.healing_percentage != 0) {
-                ImGui::TextColored(ImVec4(0.2f, 0.8f, 0.2f, 1.0f), "  Healing: +%.1f%% (one-time)", e.healing_percentage * 100);
-                has_stats = true;
-            }
-            
-            if (!has_stats) {
-                ImGui::TextColored(ImVec4(0.6f, 0.6f, 0.6f, 1.0f), "  No effects");
-            }
+            if (e.healing != 0)
+                display_stat("Healing", e.healing);
+			if (e.healing_percentage != 0) 
+                display_stat_float("Healing", e.healing_percentage * 100, "%");
             
             ImGui::EndGroup();
             

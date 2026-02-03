@@ -44,7 +44,10 @@ public:
     Object* get_object(uint32_t object_id);
     const std::unordered_map<uint32_t, Object>& get_all_objects() const { return objects; }
 
-	uint32_t spawn_enemy(float max_health, float speed, float damage, const std::string& asset_id, const raylib::Vector3& position);
+	uint32_t spawn_enemy(float max_health, float speed, float damage,
+        const std::string& asset_id, const raylib::Vector3& position);
+    std::vector<uint32_t> spawn_enemies(float max_health, float speed, float damage,
+        const std::string& asset_id, const raylib::Vector3 position, int count);
 	Enemy* get_enemy(uint32_t enemy_id);
 	const std::unordered_map<uint32_t, Enemy>& get_all_enemies() const { return enemies; }
 	void destroy_enemy(uint32_t enemy_id);

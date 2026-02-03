@@ -20,7 +20,7 @@ void ServerWorldManager::update(float delta_time) {
         // Gather pointers to all players for enemy AI
         std::vector<Player*> player_ptrs;
         for (auto& [peer_id, player] : players) {
-            player_ptrs.push_back(&player);
+            player_ptrs.push_back(&player);     
         }
         enemy.tick(delta_time, player_ptrs);
     }
@@ -136,6 +136,16 @@ uint32_t ServerWorldManager::spawn_enemy(float max_health, float speed, float da
     server->broadcast_packet(packet);
     
     return enemy_id;
+}
+
+std::vector<uint32_t> ServerWorldManager::spawn_enemies(float max_health, float speed, float damage,
+    const std::string& asset_id, const raylib::Vector3 position, int count=1) {
+    std::vector<uint32_t> ids = {};
+
+    for (int i = 0; i < count; i++) {
+        ids.push_back(spawn_enemy(max_health, speed, damage, asset_id, position + raylib::Vector3{1.0f * i, 0.0f, 0.0f}));
+    }
+    return ids;
 }
 
 Enemy* ServerWorldManager::get_enemy(uint32_t enemy_id) {

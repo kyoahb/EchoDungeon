@@ -34,12 +34,13 @@ void World::on_activate() {
 			raylib::Vector3{ 1.0f, 1.0f, 1.0f }
 		);
 
-		s_world_manager->spawn_enemy(
+		s_world_manager->spawn_enemies(
 			100.0f,
 			1,
 			10.0f,
 			"zombie",
-			raylib::Vector3{ 10.0f, 1.0f, 10.0f }
+			raylib::Vector3{ 10.0f, 1.0f, 10.0f },
+			20
 		);
 
 		// Broadcast initial world snapshot to all clients

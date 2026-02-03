@@ -10,7 +10,7 @@ public:
 	int max_health_boost = 0; // Increases max health
 	float max_health_percentage_boost = 0; // Increases max health by percentage
 
-	int damage_boost = 0; // Increases damage
+	float damage_boost = 0; // Increases damage
 	float damage_percentage_boost = 0; // Increases damage by percentage
 
 	float speed_boost = 0; // Increases movement speed

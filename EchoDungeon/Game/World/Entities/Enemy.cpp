@@ -51,6 +51,7 @@ void Enemy::tick(float delta_time, std::vector<Player*>& players) {
 	for (Player* player : players) {
 		// Skip dead players
 		if (player->is_dead()) continue; 
+		if (!player) continue;
 
 		float distance = player->transform.get_position().Distance(transform.get_position());
 		if (distance < closest_distance) {
