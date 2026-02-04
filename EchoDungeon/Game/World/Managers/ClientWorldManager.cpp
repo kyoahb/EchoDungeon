@@ -154,7 +154,6 @@ void ClientWorldManager::update_player(uint32_t peer_id,
         it->second.speed = speed;
         it->second.attack_cooldown = attack_cooldown;
         it->second.last_attack_time = last_attack_time;
-        it->second.attacking = attacking;
         it->second.inventory = inventory;
     }
 }

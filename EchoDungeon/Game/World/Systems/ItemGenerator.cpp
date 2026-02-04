@@ -188,35 +188,43 @@ float ItemGenerator::get_difficulty_multiplier(uint64_t game_time_ms) {
 }
 
 std::string ItemGenerator::generate_item_name(const ItemEffects& effects, std::vector<float> dist_rolls, float difficulty) {
-	// Calculate goodness: avg dist_rolls
-	float goodness = std::accumulate(dist_rolls.begin(), dist_rolls.end(), 0.0f) / dist_rolls.size();
-	
+	float goodness = (std::accumulate(dist_rolls.begin(), dist_rolls.end(), 0.0f) / dist_rolls.size())
+		* std::sqrt((int)dist_rolls.size() / 12.0f);
+	// 'Goodness' is a measure of how lucky the item is.
+	// The luckiest item has all rolls at 1.0 and has 12 stats, giving a goodness of 1.0.
+	// The least lucky item has all rolls at 0.0 and has 1 stat, giving a goodness of 0.0.
+	// This is used to determine the 'rarity' of the item in the name.
+
 	// Determine rarity prefix based on goodness
 	std::string rarity_prefix;
 	if (goodness >= 0.95f) {
 		rarity_prefix = "Legendary";
-	} else if (goodness >= 0.8f) {
+	}
+	else if (goodness >= 0.8f) {
 		rarity_prefix = "Epic";
-	} else if (goodness >= 0.5f) {
+	}
+	else if (goodness >= 0.5f) {
 		rarity_prefix = "Rare";
-	} else {
+	}
+	else {
 		rarity_prefix = "Common";
 	}
-	
+
 	// Determine danger prefix based on negative stats
 	int negative_count = count_negative_stats(effects);
 	int positive_count = count_positive_stats(effects);
 	int total_count = negative_count + positive_count;
-	
+
 	std::string danger_prefix = "";
 	if (total_count > 0) {
 		if (negative_count > total_count / 2) {
 			danger_prefix = "Cursed ";
-		} else if (negative_count > 0) {
+		}
+		else if (negative_count > 0) {
 			danger_prefix = "Dangerous ";
 		}
 	}
-	
+
 	return danger_prefix + rarity_prefix + " Item";
 }
 

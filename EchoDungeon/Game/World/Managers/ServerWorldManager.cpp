@@ -28,6 +28,16 @@ void ServerWorldManager::update(float delta_time) {
         enemy.tick(delta_time, player_ptrs);
     }
 
+    // Update player .attacking
+	uint64_t current_time = NetUtils::get_current_time_millis();
+    for (auto& [peer_id, player] : players) {
+        if (player.attacking && 
+            (current_time - player.last_attack_time) >= player.attack_cooldown) {
+            player.attacking = false; // Reset attacking state after cooldown
+        }
+	}
+
+
     // Update collisions
     PhysicsManager::update(&players, &enemies, &objects, this, nullptr);
 
@@ -128,7 +138,7 @@ uint32_t ServerWorldManager::spawn_enemy(float max_health, float speed, float da
     // Get RNG drop
     float roll = (float)rand() / RAND_MAX;
     if (roll <= item_drop_chance) {
-        asset_id = "gold_zombie";
+        asset_id = "goldzombie";
         drops_items = true;
     }
     
@@ -369,11 +379,11 @@ void ServerWorldManager::regular_enemy_spawning_update(float delta_time) {
     float seconds = time / 1000.0f;
 
 	// Calculate spawn interval based on time
-    float spawn_interval = 10.0f * (std::exp(-seconds/800.0f));
+    float spawn_interval = 10.0f * (std::exp(-seconds/200.0f));
     // At 0s: 10s interval
-	// At 60s: ~9.2s interval
-	// At 600s: ~4.7s interval
-    // At 2400s: ~0.5s interval
+	// At 60s: ~7.4s interval
+	// At 600s: ~0.5s interval
+    // At 2400s: ~0.00006s interval
     
     if (NetUtils::get_current_time_millis() - last_enemy_spawn_time >= static_cast<uint64_t>(spawn_interval*1000)) {
         last_enemy_spawn_time = NetUtils::get_current_time_millis();
@@ -395,15 +405,10 @@ void ServerWorldManager::regular_enemy_spawning_update(float delta_time) {
         
         // Scale enemy stats based on elapsed game time
         uint64_t elapsed_time = get_elapsed_gametime();
-        float health = 50.0f + (elapsed_time / 60000.0f) * 5.0f; // +5 health per minute
-        float speed = 1.0f + (elapsed_time / 60000.0f) * 0.05f;    // +0.05 speed per minute
+        float health = 50.0f + (elapsed_time / 60000.0f) * 10.0f; // +5 health per minute
+        float speed = 1.0f + (elapsed_time / 60000.0f) * 0.1f;    // +0.05 speed per minute
         float damage = 5.0f + (elapsed_time / 60000.0f) * 1.0f;   // +1 damage per minute
 
         spawn_enemy(health, speed, damage, raylib::Vector3{ x, 1.0f, z });
-
-        INFO("Spawned enemy at (" + std::to_string(x) + ", " + std::to_string(z) + 
-             ") with HP: " + std::to_string(health) + 
-             ", Speed: " + std::to_string(speed) + 
-             ", Damage: " + std::to_string(damage));
     }
 }
