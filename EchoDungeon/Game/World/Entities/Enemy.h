@@ -16,6 +16,7 @@ public:
 	float health = 100.0f;  // Current health of the enemy
 	float speed = 1.0f; // Movement speed (units per second)
 	float damage = 10.0f; // Damage dealt to the player on contact
+	bool spawns_items = false; // Does this enemy spawn items on death?
 
 	ObjectTransform transform;
 	std::string asset_id = "zombie"; // By default, a zombie

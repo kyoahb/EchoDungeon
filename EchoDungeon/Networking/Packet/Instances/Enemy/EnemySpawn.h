@@ -19,6 +19,7 @@ public:
 	float max_health = 100.0f;          // Maximum health
 	float damage = 10.0f;               // Damage dealt
 	float speed = 1.0f;                 // Movement speed
+	bool spawns_items = true;         // Does this enemy spawn items on death?
 	std::string asset_id = "zombie";    // Asset reference
 
 	// Default constructor
@@ -29,10 +30,11 @@ public:
 	// Constructor with data
 	EnemySpawnPacket(uint32_t _id, const ObjectTransform& _transform,
 		float _health, float _max_health, float _damage, float _speed,
+		bool _spawns_items = true,
 		const std::string& _asset_id = "zombie")
 		: Packet(17, true), id(_id), transform(_transform),
 		health(_health), max_health(_max_health), damage(_damage),
-		speed(_speed), asset_id(_asset_id) {
+		speed(_speed), spawns_items(_spawns_items), asset_id(_asset_id) {
 	}
 
 	// Macros for serialization
@@ -41,6 +43,6 @@ public:
 
 	template<class Archive>
 	void serialize(Archive& archive) {
-		archive(header, is_reliable, id, transform, health, max_health, damage, speed, asset_id);
+		archive(header, is_reliable, id, transform, health, max_health, damage, speed, spawns_items, asset_id);
 	}
 };

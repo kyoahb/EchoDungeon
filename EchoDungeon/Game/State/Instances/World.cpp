@@ -34,15 +34,6 @@ void World::on_activate() {
 			raylib::Vector3{ 1.0f, 1.0f, 1.0f }
 		);
 
-		s_world_manager->spawn_enemies(
-			100.0f,
-			1,
-			10.0f,
-			"zombie",
-			raylib::Vector3{ 10.0f, 1.0f, 10.0f },
-			20
-		);
-
 		// Broadcast initial world snapshot to all clients
 		s_world_manager->broadcast_world_snapshot();
 	}
@@ -249,7 +240,8 @@ void World::setup_client_events() {
 					data.packet.speed, data.packet.damage, data.packet.asset_id);
 				e.transform = data.packet.transform;
 				e.health = data.packet.health;
-				
+				e.spawns_items = data.packet.spawns_items;
+
 				c_world_manager->add_enemy(e);
 				TRACE("Spawned enemy: ID=" + std::to_string(e.id));
 			}

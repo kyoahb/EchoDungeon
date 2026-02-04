@@ -67,7 +67,8 @@ Item ItemGenerator::generate_random_item(uint32_t item_id, uint64_t game_time_ms
 	
 	// Determine how many stats this item will have
 	// Range: 1 to total number of possible stats
-	std::binomial_distribution<int> num_stats_dist(static_cast<int>(StatType::COUNT)-1, (1- 0.8f*difficulty));
+	std::binomial_distribution<int> num_stats_dist(
+		static_cast<int>(StatType::COUNT)-1, (1- 0.8f*difficulty));
 	int num_stats = 1 + num_stats_dist(rng);
 	
 	// Create a list of all possible stats and shuffle it
@@ -252,13 +253,13 @@ int ItemGenerator::count_negative_stats(const ItemEffects& effects) {
 	if (effects.speed_boost < 0) count++;
 	if (effects.range_boost < 0) count++;
 	if (effects.atk_cooldown_reduction < 0) count++;
-	// Healing can't be negative
+	if (effects.healing < 0) count++;
 	if (effects.max_health_percentage_boost < 0) count++;
 	if (effects.damage_percentage_boost < 0) count++;
 	if (effects.speed_percentage_boost < 0) count++;
 	if (effects.range_percentage_boost < 0) count++;
 	if (effects.atk_cooldown_percent_reduction < 0) count++;
-	// Healing percentage can't be negative
+	if (effects.healing_percentage < 0) count++;
 	return count;
 }
 

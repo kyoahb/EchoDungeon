@@ -69,50 +69,44 @@ void Player::recalculate_stats(const std::unordered_map<uint32_t, Item>& item_re
 		}
 	}
 
-	// Clamp health to new max_health (don't heal, just cap)
+	// Clamp health to new max_health
 	if (health > max_health) {
 		health = max_health;
 	}
 }
 
 void Player::apply_item_effects(const ItemEffects& effects) {
+	// Temporary variables to hold modified stats
+	auto temp_damage = damage;
+	auto temp_max_health = max_health;
+	auto temp_range = range;
+	auto temp_speed = speed;
+	auto temp_attack_cooldown = attack_cooldown;
+	auto temp_health = health;
+
 	// Apply flat modifiers first
-	damage += effects.damage_boost;
-	max_health += effects.max_health_boost;
-	range += effects.range_boost;
-	speed += effects.speed_boost;
-	
-	// For attack cooldown, reduction is subtracted (positive reduction = faster attacks)
-	if (effects.atk_cooldown_reduction > 0) {
-		if (attack_cooldown >= (uint64_t)effects.atk_cooldown_reduction) {
-			attack_cooldown -= effects.atk_cooldown_reduction;
-		} else {
-			attack_cooldown = 0;
-		}
-	} else if (effects.atk_cooldown_reduction < 0) {
-		// Negative reduction = penalty (slower attacks)
-		attack_cooldown += abs(effects.atk_cooldown_reduction);
-	}
+	temp_damage += effects.damage_boost;
+	temp_max_health += effects.max_health_boost;
+	temp_range += effects.range_boost;
+	temp_speed += effects.speed_boost;
+	temp_attack_cooldown -= effects.atk_cooldown_reduction;
 
 	// Apply percentage modifiers
-	damage *= (1.0f + effects.damage_percentage_boost);
-	max_health *= (1.0f + effects.max_health_percentage_boost);
-	range *= (1.0f + effects.range_percentage_boost);
-	speed *= (1.0f + effects.speed_percentage_boost);
-	
-	// For percentage cooldown reduction
-	if (effects.atk_cooldown_percent_reduction > 0) {
-		attack_cooldown = (uint64_t)(attack_cooldown * (1.0f - effects.atk_cooldown_percent_reduction));
-	} else if (effects.atk_cooldown_percent_reduction < 0) {
-		// Negative percent = penalty (slower attacks)
-		attack_cooldown = (uint64_t)(attack_cooldown * (1.0f + abs(effects.atk_cooldown_percent_reduction)));
-	}
+	temp_damage *= (1.0f + effects.damage_percentage_boost);
+	temp_max_health *= (1.0f + effects.max_health_percentage_boost);
+	temp_range *= (1.0f + effects.range_percentage_boost);
+	temp_speed *= (1.0f + effects.speed_percentage_boost);
+	temp_attack_cooldown *= (1.0f - effects.atk_cooldown_percent_reduction);
 
-	health = min(health, max_health); // Clamp health to max_health
+	temp_health = min(temp_health, temp_max_health); // Clamp health to max_health
 
-	// Apply healing (immediate effect, only on pickup, not recalc)
-	// Note: We skip healing during recalculation to prevent exploit
-	// Healing is only applied when first picking up an item (handled in ServerWorldManager)
+	// Ensure no stats are below 0
+	damage = max(0, temp_damage);
+	max_health = max(1, temp_max_health); // At least 1 max health
+	range = max(0.1f, temp_range); // At least 0.1 range
+	speed = max(0.1f, temp_speed); // At least 0.1 speed
+	attack_cooldown = max(uint64_t(0), temp_attack_cooldown); // At least 0 ms cooldown
+	health = max(1, temp_health); // At least 1 health
 }
 
 void Player::remove_item_effects(uint32_t item_id, const std::unordered_map<uint32_t, Item>& item_registry) {

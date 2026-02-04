@@ -44,10 +44,7 @@ public:
     Object* get_object(uint32_t object_id);
     const std::unordered_map<uint32_t, Object>& get_all_objects() const { return objects; }
 
-	uint32_t spawn_enemy(float max_health, float speed, float damage,
-        const std::string& asset_id, const raylib::Vector3& position);
-    std::vector<uint32_t> spawn_enemies(float max_health, float speed, float damage,
-        const std::string& asset_id, const raylib::Vector3 position, int count);
+	uint32_t spawn_enemy(float max_health, float speed, float damage, const raylib::Vector3& position);
 	Enemy* get_enemy(uint32_t enemy_id);
 	const std::unordered_map<uint32_t, Enemy>& get_all_enemies() const { return enemies; }
 	void destroy_enemy(uint32_t enemy_id);
@@ -60,6 +57,8 @@ public:
     void handle_player_attack(uint32_t peer_id);
 
 	uint64_t get_elapsed_gametime() const;  // Num of ms passed since the game started
+
+	void regular_enemy_spawning_update(float delta_time); // Handle enemy spawning over time
 
     // Item system
     uint32_t create_item_for_player(uint32_t player_id);
@@ -81,7 +80,9 @@ private:
     uint32_t next_item_id = 1;
     
     // Item drop configuration
-    float item_drop_chance = 0.3f;  // 30% chance to drop item on enemy death
+    float item_drop_chance = 0.20f;  // 20% chance to spawn a gold enemy
+
+    uint64_t last_enemy_spawn_time = 0; // In MS
     
     // Game start time for difficulty scaling
     std::chrono::steady_clock::time_point game_start_time;

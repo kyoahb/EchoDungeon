@@ -141,6 +141,11 @@ void ClientWorldManager::update_player(uint32_t peer_id,
         // Don't update local player's transform from server, as it causes jittering
         if (peer_id != client->peers.local_server_side_id) {
             it->second.transform = transform;
+            
+            // Only update attacking state for non-local players
+            // to avoid flickering
+            it->second.attacking = attacking;
+
         }
         it->second.health = health;
         it->second.damage = damage;
@@ -381,7 +386,7 @@ void ClientWorldManager::draw_inventory_ui() {
     ImGui::Separator();
     ImGui::Spacing();
     
-    // ===== PLAYER STATS PANEL =====
+    // Show player attributes
     ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 1.0f);
     ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.3f, 0.5f, 0.8f, 1.0f)); // Blue border
@@ -390,7 +395,7 @@ void ClientWorldManager::draw_inventory_ui() {
     ImGui::BeginChild("PlayerStats", ImVec2(0, 180), true);
     
     // Header
-    ImGui::TextColored(ImVec4(0.5f, 0.8f, 1.0f, 1.0f), "Current Stats");
+    ImGui::TextColored(ImVec4(0.5f, 0.8f, 1.0f, 1.0f), "Attributes");
     ImGui::Separator();
     ImGui::Spacing();
     
@@ -510,15 +515,15 @@ void ClientWorldManager::draw_inventory_ui() {
             if (e.max_health_percentage_boost != 0) 
                 display_stat_float("Max Health", e.max_health_percentage_boost * 100, "%");
             if (e.damage_boost != 0) 
-                display_stat("Damage", e.damage_boost);
+                display_stat_float("Damage", e.damage_boost);
             if (e.damage_percentage_boost != 0) 
                 display_stat_float("Damage", e.damage_percentage_boost * 100, "%");
             if (e.speed_boost != 0) 
-                display_stat("Speed", e.speed_boost);
+                display_stat_float("Speed", e.speed_boost);
             if (e.speed_percentage_boost != 0) 
                 display_stat_float("Speed", e.speed_percentage_boost * 100, "%");
             if (e.range_boost != 0) 
-                display_stat("Range", e.range_boost);
+                display_stat_float("Range", e.range_boost);
             if (e.range_percentage_boost != 0) 
                 display_stat_float("Range", e.range_percentage_boost * 100, "%");
             if (e.atk_cooldown_reduction != 0) 

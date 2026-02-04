@@ -15,6 +15,9 @@ void ServerWorldManager::update(float delta_time) {
     auto now = std::chrono::steady_clock::now();
     auto elapsed = std::chrono::duration_cast<std::chrono::duration<float>>(now - last_update_time);
     
+    // Spawn new enemies over time
+	regular_enemy_spawning_update(delta_time);
+
     // Update enemies
     for (auto& [enemy_id, enemy] : enemies) {
         // Gather pointers to all players for enemy AI
@@ -113,13 +116,24 @@ Object* ServerWorldManager::get_object(uint32_t object_id) {
     return (it != objects.end()) ? &it->second : nullptr;
 }
 
-uint32_t ServerWorldManager::spawn_enemy(float max_health, float speed, float damage, 
-    const std::string& asset_id, const raylib::Vector3& position) {
+uint32_t ServerWorldManager::spawn_enemy(float max_health, float speed, float damage,
+    const raylib::Vector3& position) {
 
     static uint32_t next_enemy_id = 1;
     uint32_t enemy_id = next_enemy_id++;
+
+    std::string asset_id = "zombie";
+    bool drops_items = false;
+
+    // Get RNG drop
+    float roll = (float)rand() / RAND_MAX;
+    if (roll <= item_drop_chance) {
+        asset_id = "gold_zombie";
+        drops_items = true;
+    }
     
     Enemy enemy(enemy_id, max_health, speed, damage, asset_id);
+	enemy.spawns_items = drops_items;
     enemy.transform.set_position(position);
     enemies[enemy_id] = enemy;
     
@@ -131,21 +145,16 @@ uint32_t ServerWorldManager::spawn_enemy(float max_health, float speed, float da
         enemy.max_health,
         enemy.damage,
         enemy.speed,
+        enemy.spawns_items,
         enemy.asset_id
     );
     server->broadcast_packet(packet);
+
+	INFO("SERVER-SIDE: Spawned enemy ID " + std::to_string(enemy_id) +
+         " at position (" + std::to_string(position.x) + ", " + 
+         std::to_string(position.y) + ", " + std::to_string(position.z) + ") is gold: " + std::to_string(drops_items));
     
     return enemy_id;
-}
-
-std::vector<uint32_t> ServerWorldManager::spawn_enemies(float max_health, float speed, float damage,
-    const std::string& asset_id, const raylib::Vector3 position, int count=1) {
-    std::vector<uint32_t> ids = {};
-
-    for (int i = 0; i < count; i++) {
-        ids.push_back(spawn_enemy(max_health, speed, damage, asset_id, position + raylib::Vector3{1.0f * i, 0.0f, 0.0f}));
-    }
-    return ids;
 }
 
 Enemy* ServerWorldManager::get_enemy(uint32_t enemy_id) {
@@ -274,6 +283,10 @@ void ServerWorldManager::handle_player_attack(uint32_t peer_id) {
                 // Mark for destruction if dead
                 if (enemy.health <= 0.0f) {
                     enemies_to_destroy.push_back(enemy_id);
+
+					if (enemy.spawns_items) {
+                        create_item_for_player(peer_id);
+                    }
                 }
             }
         }
@@ -281,12 +294,6 @@ void ServerWorldManager::handle_player_attack(uint32_t peer_id) {
     // Destroy dead enemies
     for (uint32_t enemy_id : enemies_to_destroy) {
         destroy_enemy(enemy_id);
-        
-        // RNG for item drop
-        float roll = (float)rand() / RAND_MAX;
-        if (roll <= item_drop_chance) {
-            create_item_for_player(peer_id);
-        }
     }
 }
 
@@ -349,8 +356,6 @@ void ServerWorldManager::handle_item_discard(uint32_t player_id, uint32_t item_i
     
     INFO("Player " + std::to_string(player_id) + 
          " discarded item: " + std::to_string(item_id));
-    
-    // Note: No packet broadcast needed, next PlayerUpdate will sync stats
 }
 
 Item* ServerWorldManager::get_item(uint32_t item_id) {
@@ -358,3 +363,47 @@ Item* ServerWorldManager::get_item(uint32_t item_id) {
     return (it != items.end()) ? &it->second : nullptr;
 }
 
+void ServerWorldManager::regular_enemy_spawning_update(float delta_time) {
+    // Get server time
+    uint64_t time = get_elapsed_gametime();
+    float seconds = time / 1000.0f;
+
+	// Calculate spawn interval based on time
+    float spawn_interval = 10.0f * (std::exp(-seconds/800.0f));
+    // At 0s: 10s interval
+	// At 60s: ~9.2s interval
+	// At 600s: ~4.7s interval
+    // At 2400s: ~0.5s interval
+    
+    if (NetUtils::get_current_time_millis() - last_enemy_spawn_time >= static_cast<uint64_t>(spawn_interval*1000)) {
+        last_enemy_spawn_time = NetUtils::get_current_time_millis();
+        
+        // Spawn enemy around random player
+		if (players.empty()) return; // No players to spawn near
+
+        // Select a random player
+		auto it = players.begin();
+		std::advance(it, rand() % players.size());
+		Player& target_player = it->second;
+		raylib::Vector3 player_pos = target_player.transform.get_position();
+
+		// Random offset within 10 to 20 units
+		float angle = static_cast<float>(rand()) / RAND_MAX * 2.0f * PI;
+		float distance = 5.0f + static_cast<float>(rand()) / RAND_MAX * 10.0f; // 5 to 15 units
+		float x = player_pos.x + distance * cos(angle);
+		float z = player_pos.z + distance * sin(angle);
+        
+        // Scale enemy stats based on elapsed game time
+        uint64_t elapsed_time = get_elapsed_gametime();
+        float health = 50.0f + (elapsed_time / 60000.0f) * 5.0f; // +5 health per minute
+        float speed = 1.0f + (elapsed_time / 60000.0f) * 0.05f;    // +0.05 speed per minute
+        float damage = 5.0f + (elapsed_time / 60000.0f) * 1.0f;   // +1 damage per minute
+
+        spawn_enemy(health, speed, damage, raylib::Vector3{ x, 1.0f, z });
+
+        INFO("Spawned enemy at (" + std::to_string(x) + ", " + std::to_string(z) + 
+             ") with HP: " + std::to_string(health) + 
+             ", Speed: " + std::to_string(speed) + 
+             ", Damage: " + std::to_string(damage));
+    }
+}
