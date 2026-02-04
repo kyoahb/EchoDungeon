@@ -374,8 +374,8 @@ void ClientWorldManager::draw_inventory_ui() {
     Player* local_player = get_local_player();
     if (!local_player) return;
     
-    // Set window size and styling
-    ImGui::SetNextWindowSize(ImVec2(650, 750), ImGuiCond_FirstUseEver);
+    // Set window size - wider but shorter
+    ImGui::SetNextWindowSize(ImVec2(1000, 500), ImGuiCond_FirstUseEver);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(15, 15));
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(10, 10));
     
@@ -385,63 +385,69 @@ void ClientWorldManager::draw_inventory_ui() {
     ImGui::Separator();
     ImGui::Spacing();
     
-    // Show player attributes
+    // ===== HORIZONTAL LAYOUT: Stats on left, Items on right =====
+    
+    // Left side: Player attributes (narrower)
+    ImGui::BeginChild("LeftPanel", ImVec2(280, 0), false);
+    
     ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 1.0f);
     ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.3f, 0.5f, 0.8f, 1.0f)); // Blue border
     ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.15f, 0.2f, 0.25f, 0.9f)); // Darker background
     
-    ImGui::BeginChild("PlayerStats", ImVec2(0, 180), true);
+    ImGui::BeginChild("PlayerStats", ImVec2(0, 0), true);
     
     // Header
     ImGui::TextColored(ImVec4(0.5f, 0.8f, 1.0f, 1.0f), "Attributes");
     ImGui::Separator();
     ImGui::Spacing();
     
-    // Display stats in two columns
-    ImGui::Columns(2, "StatsColumns", false);
-    
-    // Left column
+    // Display stats in single column with more padding
     ImGui::Text("Health:");
     ImGui::SameLine(120);
-    ImGui::TextColored(ImVec4(0.9f, 0.3f, 0.3f, 1.0f), "%.0f / %.0f", local_player->health, local_player->max_health);
+    ImGui::TextColored(ImVec4(0.9f, 0.3f, 0.3f, 1.0f), "%.1f / %.1f", local_player->health, local_player->max_health);
     
     ImGui::Text("Damage:");
     ImGui::SameLine(120);
-    ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.2f, 1.0f), "%.0f", local_player->damage);
+    ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.2f, 1.0f), "%.1f", local_player->damage);
     
     ImGui::Text("Speed:");
     ImGui::SameLine(120);
-    ImGui::TextColored(ImVec4(0.3f, 0.9f, 0.9f, 1.0f), "%.0f", local_player->speed);
-    
-    // Right column
-    ImGui::NextColumn();
+    ImGui::TextColored(ImVec4(0.3f, 0.9f, 0.9f, 1.0f), "%.1f", local_player->speed);
     
     ImGui::Text("Range:");
     ImGui::SameLine(120);
-    ImGui::TextColored(ImVec4(0.9f, 0.9f, 0.3f, 1.0f), "%.0f", local_player->range);
+    ImGui::TextColored(ImVec4(0.9f, 0.9f, 0.3f, 1.0f), "%.1f", local_player->range);
     
     ImGui::Text("Cooldown:");
     ImGui::SameLine(120);
     ImGui::TextColored(ImVec4(0.7f, 0.5f, 1.0f, 1.0f), "%llu ms", local_player->attack_cooldown);
     
+    ImGui::Spacing();
+    ImGui::Separator();
+    ImGui::Spacing();
+    
     ImGui::Text("Items:");
     ImGui::SameLine(120);
     ImGui::TextColored(ImVec4(0.5f, 1.0f, 0.5f, 1.0f), "%zu", local_player->inventory.item_ids.size());
-    
-    ImGui::Columns(1);
     
     ImGui::EndChild();
     ImGui::PopStyleColor(2);
     ImGui::PopStyleVar(2);
     
-    ImGui::Spacing();
+    ImGui::EndChild(); // End LeftPanel
+    
+    ImGui::SameLine();
+    
+    // Right side: Items list (wider, scrollable)
+    ImGui::BeginChild("RightPanel", ImVec2(0, 0), false);
+    
+    ImGui::TextColored(ImVec4(0.8f, 0.8f, 0.8f, 1.0f), "Items");
     ImGui::Separator();
     ImGui::Spacing();
     
-    // ===== ITEMS SECTION =====
-    ImGui::TextColored(ImVec4(0.8f, 0.8f, 0.8f, 1.0f), "Items:");
-    ImGui::Spacing();
+    // Scrollable items region
+    ImGui::BeginChild("ItemsScrollRegion", ImVec2(0, 0), false, ImGuiWindowFlags_AlwaysVerticalScrollbar);
     
     if (local_player->inventory.item_ids.empty()) {
         ImGui::TextColored(ImVec4(0.6f, 0.6f, 0.6f, 1.0f), "No items in inventory");
@@ -450,101 +456,169 @@ void ClientWorldManager::draw_inventory_ui() {
             Item* item = get_item(item_id);
             if (!item) continue;
             
-            // Create a bordered child window for each item
+            // Count non-zero stats to determine card height
+            const ItemEffects& e = item->effects;
+            int stat_count = 0;
+            if (e.max_health_boost != 0) stat_count++;
+            if (e.max_health_percentage_boost != 0) stat_count++;
+            if (e.damage_boost != 0) stat_count++;
+            if (e.damage_percentage_boost != 0) stat_count++;
+            if (e.speed_boost != 0) stat_count++;
+            if (e.speed_percentage_boost != 0) stat_count++;
+            if (e.range_boost != 0) stat_count++;
+            if (e.range_percentage_boost != 0) stat_count++;
+            if (e.atk_cooldown_reduction != 0) stat_count++;
+            if (e.atk_cooldown_percent_reduction != 0) stat_count++;
+            if (e.healing != 0) stat_count++;
+            if (e.healing_percentage != 0) stat_count++;
+            
+            // Calculate dynamic height: base height + stat rows (accounting for 2 columns)
+            int stat_rows = (stat_count + 1) / 2; // Round up for 2-column layout
+            float item_height = 90.0f + (stat_rows * 14.0f); // Base + rows with tight spacing
+            item_height = max(item_height, 105.0f); // Minimum height
+            
+            // Compact item card with dynamic height (NO scrollbars on individual items)
             ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.0f);
             ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 1.0f);
             ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.4f, 0.4f, 0.4f, 1.0f));
             
             std::string child_id = "item_" + std::to_string(item_id);
-            ImGui::BeginChild(child_id.c_str(), ImVec2(0, 180), true);
+            ImGui::BeginChild(child_id.c_str(), ImVec2(0, item_height), false); // false = no scrollbar
             
-            // Left side: Image
+            // Item name at the top
+            ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[0]);
+            ImGui::TextWrapped("%s", item->item_name.c_str());
+            ImGui::PopFont();
+            ImGui::Separator();
+            
+            // Image on the left, stats in columns on the right
             ImGui::BeginGroup();
             
             try {
                 const AssetImage& asset = AssetMap::get_image(item->asset_id);
                 Texture2D tex = asset.texture;
-                rlImGuiImageSize(&tex, 80, 80);
+                rlImGuiImageSize(&tex, 60, 60);
             } catch (...) {
                 // If image not found, show placeholder
-                ImGui::Dummy(ImVec2(80, 80));
+                ImGui::Dummy(ImVec2(60, 60));
                 ImGui::SameLine();
-                ImGui::SetCursorPosX(ImGui::GetCursorPosX() - 40);
-                ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 35);
+                ImGui::SetCursorPosX(ImGui::GetCursorPosX() - 30);
+                ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 25);
                 ImGui::TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1.0f), "[IMG]");
-                ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 35);
+                ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 25);
             }
             
             ImGui::EndGroup();
             
             ImGui::SameLine();
             
-            // Right side: Item info and stats
+            // Stats section - use simple vertical list that wraps to 2 columns
             ImGui::BeginGroup();
             
-            // Item name with larger font
-            ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[0]); // Use default font (can be made larger)
-            ImGui::TextWrapped("%s", item->item_name.c_str());
-            ImGui::PopFont();
+            // Use smaller font and tighter spacing for stats
+            ImGui::SetWindowFontScale(0.85f); // Make stats font smaller
+            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(8, 1));
             
-            ImGui::Spacing();
+            // Collect all stats first, then display in two columns
+            struct StatEntry { const char* label; char value[32]; };
+            std::vector<StatEntry> stats;
             
-            // Stats section
-            const ItemEffects& e = item->effects;
-            bool has_stats = false;
+            if (e.max_health_boost != 0) {
+                StatEntry s; s.label = "Max Health"; 
+                snprintf(s.value, sizeof(s.value), "%+d", e.max_health_boost);
+                stats.push_back(s);
+            }
+            if (e.max_health_percentage_boost != 0) {
+                StatEntry s; s.label = "Max Health"; 
+                snprintf(s.value, sizeof(s.value), "%+.1f%%", e.max_health_percentage_boost * 100);
+                stats.push_back(s);
+            }
+            if (e.damage_boost != 0) {
+                StatEntry s; s.label = "Damage"; 
+                snprintf(s.value, sizeof(s.value), "%+.1f", e.damage_boost);
+                stats.push_back(s);
+            }
+            if (e.damage_percentage_boost != 0) {
+                StatEntry s; s.label = "Damage"; 
+                snprintf(s.value, sizeof(s.value), "%+.1f%%", e.damage_percentage_boost * 100);
+                stats.push_back(s);
+            }
+            if (e.speed_boost != 0) {
+                StatEntry s; s.label = "Speed"; 
+                snprintf(s.value, sizeof(s.value), "%+.1f", e.speed_boost);
+                stats.push_back(s);
+            }
+            if (e.speed_percentage_boost != 0) {
+                StatEntry s; s.label = "Speed"; 
+                snprintf(s.value, sizeof(s.value), "%+.1f%%", e.speed_percentage_boost * 100);
+                stats.push_back(s);
+            }
+            if (e.range_boost != 0) {
+                StatEntry s; s.label = "Range"; 
+                snprintf(s.value, sizeof(s.value), "%+.1f", e.range_boost);
+                stats.push_back(s);
+            }
+            if (e.range_percentage_boost != 0) {
+                StatEntry s; s.label = "Range"; 
+                snprintf(s.value, sizeof(s.value), "%+.1f%%", e.range_percentage_boost * 100);
+                stats.push_back(s);
+            }
+            if (e.atk_cooldown_reduction != 0) {
+                StatEntry s; s.label = "Attack Speed"; 
+                snprintf(s.value, sizeof(s.value), "%+ds", e.atk_cooldown_reduction);
+                stats.push_back(s);
+            }
+            if (e.atk_cooldown_percent_reduction != 0) {
+                StatEntry s; s.label = "Attack Speed"; 
+                snprintf(s.value, sizeof(s.value), "%+.1f%%", e.atk_cooldown_percent_reduction * 100);
+                stats.push_back(s);
+            }
+            if (e.healing != 0) {
+                StatEntry s; s.label = "Healing"; 
+                snprintf(s.value, sizeof(s.value), "%+d", e.healing);
+                stats.push_back(s);
+            }
+            if (e.healing_percentage != 0) {
+                StatEntry s; s.label = "Healing"; 
+                snprintf(s.value, sizeof(s.value), "%+.1f%%", e.healing_percentage * 100);
+                stats.push_back(s);
+            }
             
-            // Helper lambda for colored stat display
-            auto display_stat = [&](const char* label, int value, const char* suffix = "") {
-                if (value == 0) return;
-                has_stats = true;
-                ImVec4 color = value > 0 ? ImVec4(0.2f, 0.8f, 0.2f, 1.0f) : ImVec4(0.9f, 0.2f, 0.2f, 1.0f);
-                ImGui::TextColored(color, "  %s: %+d%s", label, value, suffix);
-            };
+            // Display in two columns: left to right, then down
+            ImGui::Columns(2, "ItemStatsColumns", false);
+            ImGui::SetColumnWidth(0, 155);
             
-            auto display_stat_float = [&](const char* label, float value, const char* suffix = "") {
-                if (value == 0.0f) return;
-                has_stats = true;
-                ImVec4 color = value > 0 ? ImVec4(0.2f, 0.8f, 0.2f, 1.0f) : ImVec4(0.9f, 0.2f, 0.2f, 1.0f);
-                ImGui::TextColored(color, "  %s: %+.1f%s", label, value, suffix);
-            };
+            for (size_t i = 0; i < stats.size(); i++) {
+                const auto& stat = stats[i];
+                ImVec4 color = ImVec4(0.2f, 0.8f, 0.2f, 1.0f); // Green for positive
+                if (stat.value[0] == '-') color = ImVec4(0.9f, 0.2f, 0.2f, 1.0f); // Red for negative
+                ImGui::TextColored(color, "%s %s", stat.label, stat.value);
+                
+                // After displaying, move to next column if we just filled left column
+                if (i % 2 == 0 && i < stats.size() - 1) {
+                    ImGui::NextColumn();
+                }
+            }
             
-            // Display all stats with color coding
-            if (e.max_health_boost != 0) 
-                display_stat("Max Health", e.max_health_boost);
-            if (e.max_health_percentage_boost != 0) 
-                display_stat_float("Max Health", e.max_health_percentage_boost * 100, "%");
-            if (e.damage_boost != 0) 
-                display_stat_float("Damage", e.damage_boost);
-            if (e.damage_percentage_boost != 0) 
-                display_stat_float("Damage", e.damage_percentage_boost * 100, "%");
-            if (e.speed_boost != 0) 
-                display_stat_float("Speed", e.speed_boost);
-            if (e.speed_percentage_boost != 0) 
-                display_stat_float("Speed", e.speed_percentage_boost * 100, "%");
-            if (e.range_boost != 0) 
-                display_stat_float("Range", e.range_boost);
-            if (e.range_percentage_boost != 0) 
-                display_stat_float("Range", e.range_percentage_boost * 100, "%");
-            if (e.atk_cooldown_reduction != 0) 
-                display_stat("Attack Speed", e.atk_cooldown_reduction, " ms");
-            if (e.atk_cooldown_percent_reduction != 0) 
-                display_stat_float("Attack Speed", e.atk_cooldown_percent_reduction * 100, "%");
-            if (e.healing != 0)
-                display_stat("Healing", e.healing);
-			if (e.healing_percentage != 0) 
-                display_stat_float("Healing", e.healing_percentage * 100, "%");
+            ImGui::Columns(1);
+            ImGui::SetWindowFontScale(1.0f); // Reset font scale
+            ImGui::PopStyleVar();
             
             ImGui::EndGroup();
             
-            // Discard button at bottom right
-            ImGui::SetCursorPosY(ImGui::GetWindowHeight() - 35);
-            ImGui::SetCursorPosX(ImGui::GetWindowWidth() - 120);
+            // Discard button at bottom right - use fixed offset from right edge
+            float button_width = 85.0f;
+            float button_padding = 10.0f; // Padding from right edge
+            float child_window_width = ImGui::GetWindowSize().x;
+            float button_x = child_window_width - button_width - button_padding;
+            float button_y = item_height - 28;
+            ImGui::SetCursorPos(ImVec2(button_x, button_y));
             
             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.2f, 0.2f, 1.0f));
             ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.8f, 0.3f, 0.3f, 1.0f));
             ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.9f, 0.1f, 0.1f, 1.0f));
             
-            if (ImGui::Button(("Discard##" + std::to_string(item_id)).c_str(), ImVec2(100, 25))) {
+            if (ImGui::Button(("Discard##" + std::to_string(item_id)).c_str(), ImVec2(85, 20))) {
                 request_item_discard(item_id);
             }
             
@@ -557,6 +631,9 @@ void ClientWorldManager::draw_inventory_ui() {
             ImGui::Spacing();
         }
     }
+    
+    ImGui::EndChild(); // End ItemsScrollRegion
+    ImGui::EndChild(); // End RightPanel
     
     ImGui::End();
     ImGui::PopStyleVar(2);

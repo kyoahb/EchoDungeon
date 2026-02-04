@@ -90,6 +90,7 @@ void Player::apply_item_effects(const ItemEffects& effects) {
 	temp_range += effects.range_boost;
 	temp_speed += effects.speed_boost;
 	temp_attack_cooldown -= effects.atk_cooldown_reduction;
+	temp_health += effects.healing;
 
 	// Apply percentage modifiers
 	temp_damage *= (1.0f + effects.damage_percentage_boost);
@@ -97,6 +98,7 @@ void Player::apply_item_effects(const ItemEffects& effects) {
 	temp_range *= (1.0f + effects.range_percentage_boost);
 	temp_speed *= (1.0f + effects.speed_percentage_boost);
 	temp_attack_cooldown *= (1.0f - effects.atk_cooldown_percent_reduction);
+	temp_health *= (1.0f + effects.healing_percentage);
 
 	temp_health = min(temp_health, temp_max_health); // Clamp health to max_health
 
