@@ -19,6 +19,10 @@ ClientWorldManager::ClientWorldManager(std::shared_ptr<Client> client)
 }
 
 void ClientWorldManager::update(float delta_time) {
+    std::lock_guard<std::recursive_mutex> lock(world_state_mutex);
+    
+    uint64_t current_time = NetUtils::get_current_time_millis();
+    const uint64_t attack_visual_duration = 300; // 300ms attack visual for all players
 
     // Process local player input ONLY IF player exists and is alive
     if (client->peers.local_server_side_id != 0 && get_local_player() && !get_local_player()->is_dead()) {
@@ -34,6 +38,13 @@ void ClientWorldManager::update(float delta_time) {
         }
     }
     
+    // Update attack visual duration for all players
+    for (auto& [peer_id, player] : players) {
+        if (player.attacking && (current_time - player.last_attack_time) > attack_visual_duration) {
+            player.attacking = false;
+        }
+    }
+    
     // Check for inventory toggle
     if (Input::is_key_pressed(KEY_E)) {
         toggle_inventory();
@@ -42,27 +53,22 @@ void ClientWorldManager::update(float delta_time) {
     // Update camera to follow local player
     update_camera(delta_time);
 
-    // Lock for enemy tick and physics update
-    {
-        std::lock_guard<std::mutex> lock(world_state_mutex);
-        
-        // Tick enemies
-        for (auto& [enemy_id, enemy] : enemies) {
-            // Gather pointers to all players for enemy AI
-            std::vector<Player*> player_ptrs;
-            for (auto& [peer_id, player] : players) {
-                player_ptrs.push_back(&player);
-            }
-            enemy.tick(delta_time, player_ptrs);
+    // Tick enemies
+    for (auto& [enemy_id, enemy] : enemies) {
+        // Gather pointers to all players for enemy AI
+        std::vector<Player*> player_ptrs;
+        for (auto& [peer_id, player] : players) {
+            player_ptrs.push_back(&player);
         }
-        
-        // Apply physics (collision checking)
-        PhysicsManager::update(&players, &enemies, &objects, nullptr, this);
+        enemy.tick(delta_time, player_ptrs);
     }
+    
+    // Apply physics (collision checking)
+    PhysicsManager::update(&players, &enemies, &objects, nullptr, this);
 }
 
 void ClientWorldManager::draw_3d() {
-    std::lock_guard<std::mutex> lock(world_state_mutex);
+    std::lock_guard<std::recursive_mutex> lock(world_state_mutex);
     
     // Draw all players
     for (auto& [peer_id, player] : players) {
@@ -89,6 +95,8 @@ void ClientWorldManager::draw_3d() {
 }
 
 void ClientWorldManager::draw_2d() {
+    std::lock_guard<std::recursive_mutex> lock(world_state_mutex);
+    
     // Draw player UI elements (names, health bars)
     for (auto& [peer_id, player] : players) {
         player.draw2D(camera);
@@ -104,6 +112,8 @@ void ClientWorldManager::draw_2d() {
 }
 
 void ClientWorldManager::clear() {
+    std::lock_guard<std::recursive_mutex> lock(world_state_mutex);
+    
     players.clear();
     objects.clear();
     enemies.clear();
@@ -114,12 +124,15 @@ void ClientWorldManager::clear() {
 
 
 Player* ClientWorldManager::get_local_player() {
+    // Note: This doesn't acquire lock - caller should hold lock or this is used within locked context
     return get_player(client->peers.local_server_side_id);
 }
 
 
 
 void ClientWorldManager::add_player(const Player& player) {
+    std::lock_guard<std::recursive_mutex> lock(world_state_mutex);
+    
     players[player.id] = player;
     if (player.id == client->peers.local_server_side_id) {
         players[player.id].is_local = true;
@@ -129,12 +142,15 @@ void ClientWorldManager::add_player(const Player& player) {
 }
 
 void ClientWorldManager::remove_player(uint32_t peer_id) {
+    std::lock_guard<std::recursive_mutex> lock(world_state_mutex);
+    
     players.erase(peer_id);
 }
 
 void ClientWorldManager::update_player(uint32_t peer_id, 
     const ObjectTransform& transform, float health, float damage, 
     float max_health, float range, float speed, uint64_t attack_cooldown, uint64_t last_attack_time, bool attacking, const Inventory& inventory) {
+    std::lock_guard<std::recursive_mutex> lock(world_state_mutex);
 
     auto it = players.find(peer_id);
     if (it != players.end()) {
@@ -142,23 +158,31 @@ void ClientWorldManager::update_player(uint32_t peer_id,
         if (peer_id != client->peers.local_server_side_id) {
             it->second.transform = transform;
             
-            // Only update attacking state for non-local players
-            // to avoid flickering
+            // For non-local players: detect when they start attacking
+            // and set client-side last_attack_time for visual duration tracking
+            if (attacking && !it->second.attacking) {
+                // Player just started attacking - record client-side time for visual
+                it->second.last_attack_time = NetUtils::get_current_time_millis();
+            }
             it->second.attacking = attacking;
-
         }
+        // For local player, don't update attacking or last_attack_time from server
+        // as it's handled by client-side input processing
+        
         it->second.health = health;
         it->second.damage = damage;
         it->second.max_health = max_health;
         it->second.range = range;
         it->second.speed = speed;
         it->second.attack_cooldown = attack_cooldown;
-        it->second.last_attack_time = last_attack_time;
+        // Don't overwrite last_attack_time for visual tracking purposes
         it->second.inventory = inventory;
     }
 }
 
 Player* ClientWorldManager::get_player(uint32_t peer_id) {
+    std::lock_guard<std::recursive_mutex> lock(world_state_mutex);
+    
     auto it = players.find(peer_id);
     return (it != players.end()) ? &it->second : nullptr;
 }
@@ -166,31 +190,37 @@ Player* ClientWorldManager::get_player(uint32_t peer_id) {
 
 
 void ClientWorldManager::add_object(const Object& object) {
+    std::lock_guard<std::recursive_mutex> lock(world_state_mutex);
+    
     objects[object.id] = object;
 }
 
 void ClientWorldManager::remove_object(uint32_t object_id) {
+    std::lock_guard<std::recursive_mutex> lock(world_state_mutex);
+    
     objects.erase(object_id);
 }
 
 Object* ClientWorldManager::get_object(uint32_t object_id) {
-auto it = objects.find(object_id);
+    std::lock_guard<std::recursive_mutex> lock(world_state_mutex);
+    
+    auto it = objects.find(object_id);
     return (it != objects.end()) ? &it->second : nullptr;
 }
 
 void ClientWorldManager::add_enemy(const Enemy& enemy) {
-    std::lock_guard<std::mutex> lock(world_state_mutex);
+    std::lock_guard<std::recursive_mutex> lock(world_state_mutex);
     enemies[enemy.id] = enemy;
     
 }
 
 void ClientWorldManager::remove_enemy(uint32_t enemy_id) {
-    std::lock_guard<std::mutex> lock(world_state_mutex);
+    std::lock_guard<std::recursive_mutex> lock(world_state_mutex);
     enemies.erase(enemy_id);
 }
 
 void ClientWorldManager::update_enemy(uint32_t enemy_id, const ObjectTransform& transform, float health) {
-    std::lock_guard<std::mutex> lock(world_state_mutex);
+    std::lock_guard<std::recursive_mutex> lock(world_state_mutex);
     
     auto it = enemies.find(enemy_id);
     if (it != enemies.end()) {
@@ -203,7 +233,7 @@ void ClientWorldManager::update_enemy(uint32_t enemy_id, const ObjectTransform& 
 }
 
 Enemy* ClientWorldManager::get_enemy(uint32_t enemy_id) {
-    std::lock_guard<std::mutex> lock(world_state_mutex);
+    std::lock_guard<std::recursive_mutex> lock(world_state_mutex);
     
     auto it = enemies.find(enemy_id);
     return (it != enemies.end()) ? &it->second : nullptr;
@@ -212,9 +242,14 @@ Enemy* ClientWorldManager::get_enemy(uint32_t enemy_id) {
 
 
 void ClientWorldManager::apply_world_snapshot(const WorldSnapshotPacket& snapshot) {
-    std::lock_guard<std::mutex> lock(world_state_mutex);
+    std::lock_guard<std::recursive_mutex> lock(world_state_mutex);
     
-    clear();
+    // Clear existing state
+    players.clear();
+    objects.clear();
+    enemies.clear();
+    items.clear();
+    show_inventory = false;
     
     // Load all players
     for (const auto& [peer_id, player] : snapshot.players) {
@@ -289,11 +324,6 @@ void ClientWorldManager::process_local_player_input(float delta_time) {
     
     uint64_t current_time = NetUtils::get_current_time_millis();
     
-    // Reset attacking flag after 200ms for visual feedback
-    if (local_player->attacking && (current_time - local_player->last_attack_time) > 200) {
-        local_player->attacking = false;
-    }
-    
     // Get input
     raylib::Vector3 movement = {0.0f, 0.0f, 0.0f};
     
@@ -333,14 +363,15 @@ bool ClientWorldManager::has_local_player_moved() const {
 }
 
 void ClientWorldManager::handle_item_pickup(uint32_t player_id, const Item& item) {
-    std::lock_guard<std::mutex> lock(world_state_mutex);
+    std::lock_guard<std::recursive_mutex> lock(world_state_mutex);
     
     // Store item in client registry
     items[item.id] = item;
     
     // Get player
-    Player* player = get_player(player_id);
-    if (!player) return;
+    auto it = players.find(player_id);
+    if (it == players.end()) return;
+    Player* player = &it->second;
     
     // Add to inventory
     player->inventory.add_item(item.id);
@@ -364,6 +395,8 @@ void ClientWorldManager::toggle_inventory() {
 }
 
 Item* ClientWorldManager::get_item(uint32_t item_id) {
+    std::lock_guard<std::recursive_mutex> lock(world_state_mutex);
+    
     auto it = items.find(item_id);
     return (it != items.end()) ? &it->second : nullptr;
 }

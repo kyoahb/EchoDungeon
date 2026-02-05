@@ -10,6 +10,7 @@
 #include <unordered_map>
 #include <string>
 #include <vector>
+#include <mutex>
 #include "PhysicsManager.h"
 #include "Game/World/Entities/Enemy.h"
 
@@ -73,8 +74,8 @@ private:
     std::unordered_map<uint32_t, Enemy> enemies;  // Keyed by enemy_id
     std::unordered_map<uint32_t, Item> items;  // Client-side item copies
     
-    // Thread synchronization for world state
-    mutable std::mutex world_state_mutex;
+    // Thread synchronization for world state (recursive to allow nested locks from same thread)
+    mutable std::recursive_mutex world_state_mutex;
     
     // Camera
     raylib::Camera3D camera;

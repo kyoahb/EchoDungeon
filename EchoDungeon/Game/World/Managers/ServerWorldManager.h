@@ -16,6 +16,7 @@
 #include <unordered_map>
 #include <string>
 #include <memory>
+#include <mutex>
 #include "PhysicsManager.h"
 #include "Game/World/Entities/Enemy.h"
 
@@ -66,13 +67,16 @@ public:
     Item* get_item(uint32_t item_id);
 
 private:
-    std::shared_ptr<Server> server;  // Reference to server for broadcasting
+   std::shared_ptr<Server> server;  // Reference to server for broadcasting
     
-    // World state
-    std::unordered_map<uint32_t, Player> players;  // Keyed by peer_id
-    std::unordered_map<uint32_t, Object> objects;  // Keyed by object id
-	std::unordered_map<uint32_t, Enemy> enemies; // Keyed by enemy id
-    std::unordered_map<uint32_t, Item> items;  // Keyed by item id
+   // Thread synchronization for world state (recursive to allow nested locks from same thread)
+   mutable std::recursive_mutex world_state_mutex;
+    
+   // World state
+   std::unordered_map<uint32_t, Player> players;  // Keyed by peer_id
+   std::unordered_map<uint32_t, Object> objects;  // Keyed by object id
+std::unordered_map<uint32_t, Enemy> enemies; // Keyed by enemy id
+   std::unordered_map<uint32_t, Item> items;  // Keyed by item id
 
     
     // Entity ID generation
@@ -95,4 +99,5 @@ private:
     void collect_player_updates(std::vector<PlayerUpdateData>& updates);
     void collect_enemy_updates(std::vector<EnemyUpdateData>& updates);
     bool validate_player_transform(const Player& player, const ObjectTransform& new_transform);
+    uint32_t create_item_for_player_internal(uint32_t player_id);  // Internal version, must hold mutex
 };

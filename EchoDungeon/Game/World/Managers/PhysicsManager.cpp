@@ -54,15 +54,15 @@ ClientWorldManager* client_world_manager) {
 
 		// Create and cache bounding box for this enemy
 		enemy_boxes[enemy_id] = raylib::BoundingBox(
-			raylib::Vector3(
-				enemy_pos.x - enemy_scale.x * 0.5f,
-				enemy_pos.y - enemy_scale.y * 0.5f,
-				enemy_pos.z - enemy_scale.z * 0.5f
+			raylib::Vector3( // Reduce slightly to improve balance
+				enemy_pos.x - enemy_scale.x * 0.4f,
+				enemy_pos.y - enemy_scale.y * 0.4f,
+				enemy_pos.z - enemy_scale.z * 0.4f
 			),
 			raylib::Vector3(
-				enemy_pos.x + enemy_scale.x * 0.5f,
-				enemy_pos.y + enemy_scale.y * 0.5f,
-				enemy_pos.z + enemy_scale.z * 0.5f
+				enemy_pos.x + enemy_scale.x * 0.4f,
+				enemy_pos.y + enemy_scale.y * 0.4f,
+				enemy_pos.z + enemy_scale.z * 0.4f
 			)
 		);
 	}

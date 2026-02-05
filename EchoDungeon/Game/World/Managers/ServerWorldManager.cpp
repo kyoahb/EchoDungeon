@@ -12,6 +12,8 @@ ServerWorldManager::ServerWorldManager(std::shared_ptr<Server> server)
 }
 
 void ServerWorldManager::update(float delta_time) {
+    std::lock_guard<std::recursive_mutex> lock(world_state_mutex);
+    
     auto now = std::chrono::steady_clock::now();
     auto elapsed = std::chrono::duration_cast<std::chrono::duration<float>>(now - last_update_time);
     
@@ -49,6 +51,7 @@ void ServerWorldManager::update(float delta_time) {
 }
 
 void ServerWorldManager::clear() {
+    std::lock_guard<std::recursive_mutex> lock(world_state_mutex);
     players.clear();
     objects.clear();
     items.clear();
@@ -58,6 +61,8 @@ void ServerWorldManager::clear() {
 
 
 void ServerWorldManager::add_player(uint32_t peer_id, const std::string& name) {
+    std::lock_guard<std::recursive_mutex> lock(world_state_mutex);
+    
     Player player(peer_id, false, name);
     player.transform.set_position({0.0f, 1.0f, 0.0f});  // Spawn at origin
     players[peer_id] = player;
@@ -81,7 +86,9 @@ void ServerWorldManager::add_player(uint32_t peer_id, const std::string& name) {
 }
 
 void ServerWorldManager::remove_player(uint32_t peer_id) {
-if (players.erase(peer_id) > 0) {
+    std::lock_guard<std::recursive_mutex> lock(world_state_mutex);
+    
+    if (players.erase(peer_id) > 0) {
         // Broadcast player destroy
         PlayerDestroyPacket packet(peer_id);
         server->broadcast_packet(packet);
@@ -89,12 +96,16 @@ if (players.erase(peer_id) > 0) {
 }
 
 Player* ServerWorldManager::get_player(uint32_t peer_id) {
+    std::lock_guard<std::recursive_mutex> lock(world_state_mutex);
+    
     auto it = players.find(peer_id);
     return (it != players.end()) ? &it->second : nullptr;
 }
 
 
 uint32_t ServerWorldManager::spawn_object(ObjectType type, const std::string& asset_id, const raylib::Vector3& position) {
+    std::lock_guard<std::recursive_mutex> lock(world_state_mutex);
+    
     uint32_t object_id = next_object_id++;
     
     Object obj(object_id, asset_id, type);
@@ -114,7 +125,9 @@ uint32_t ServerWorldManager::spawn_object(ObjectType type, const std::string& as
 }
 
 void ServerWorldManager::destroy_object(uint32_t object_id) {
-if (objects.erase(object_id) > 0) {
+    std::lock_guard<std::recursive_mutex> lock(world_state_mutex);
+    
+    if (objects.erase(object_id) > 0) {
         // Broadcast object destroy
         ObjectDestroyPacket packet(object_id);
         server->broadcast_packet(packet);
@@ -122,12 +135,15 @@ if (objects.erase(object_id) > 0) {
 }
 
 Object* ServerWorldManager::get_object(uint32_t object_id) {
+    std::lock_guard<std::recursive_mutex> lock(world_state_mutex);
+    
     auto it = objects.find(object_id);
     return (it != objects.end()) ? &it->second : nullptr;
 }
 
 uint32_t ServerWorldManager::spawn_enemy(float max_health, float speed, float damage,
     const raylib::Vector3& position) {
+    std::lock_guard<std::recursive_mutex> lock(world_state_mutex);
 
     static uint32_t next_enemy_id = 1;
     uint32_t enemy_id = next_enemy_id++;
@@ -168,11 +184,15 @@ uint32_t ServerWorldManager::spawn_enemy(float max_health, float speed, float da
 }
 
 Enemy* ServerWorldManager::get_enemy(uint32_t enemy_id) {
+    std::lock_guard<std::recursive_mutex> lock(world_state_mutex);
+    
     auto it = enemies.find(enemy_id);
     return (it != enemies.end()) ? &it->second : nullptr;
 }
 
 void ServerWorldManager::destroy_enemy(uint32_t enemy_id) {
+    std::lock_guard<std::recursive_mutex> lock(world_state_mutex);
+    
     if (enemies.erase(enemy_id) > 0) {
         // Broadcast enemy destroy
         INFO("Destroyed enemy: " + std::to_string(enemy_id));
@@ -182,11 +202,15 @@ void ServerWorldManager::destroy_enemy(uint32_t enemy_id) {
 }
 
 void ServerWorldManager::broadcast_world_snapshot() {
+    std::lock_guard<std::recursive_mutex> lock(world_state_mutex);
+    
     WorldSnapshotPacket packet(players, objects, enemies);
     server->broadcast_packet(packet);
 }
 
 void ServerWorldManager::send_world_snapshot(ENetPeer* peer) {
+    std::lock_guard<std::recursive_mutex> lock(world_state_mutex);
+    
     WorldSnapshotPacket packet(players, objects, enemies);
     enet_peer_send(peer, 0, packet.to_enet_packet());
 }
@@ -242,8 +266,11 @@ void ServerWorldManager::collect_enemy_updates(std::vector<EnemyUpdateData>& upd
 
 
 void ServerWorldManager::handle_player_input(uint32_t peer_id, const ObjectTransform& input_transform) {
-    Player* player = get_player(peer_id);
-    if (!player) return;
+    std::lock_guard<std::recursive_mutex> lock(world_state_mutex);
+    
+    auto it = players.find(peer_id);
+    if (it == players.end()) return;
+    Player* player = &it->second;
     
     // Ensure player is not dead
 	if (player->is_dead()) return;
@@ -256,8 +283,11 @@ void ServerWorldManager::handle_player_input(uint32_t peer_id, const ObjectTrans
 }
 
 void ServerWorldManager::handle_player_attack(uint32_t peer_id) {
-    Player* player = get_player(peer_id);
-    if (!player) return;
+    std::lock_guard<std::recursive_mutex> lock(world_state_mutex);
+    
+    auto player_it = players.find(peer_id);
+    if (player_it == players.end()) return;
+    Player* player = &player_it->second;
 
     // Ensure player is not dead
     if (player->is_dead()) return;
@@ -295,15 +325,19 @@ void ServerWorldManager::handle_player_attack(uint32_t peer_id) {
                     enemies_to_destroy.push_back(enemy_id);
 
 					if (enemy.spawns_items) {
-                        create_item_for_player(peer_id);
+                        create_item_for_player_internal(peer_id);
                     }
                 }
             }
         }
 
-    // Destroy dead enemies
+    // Destroy dead enemies (without lock since we already hold it)
     for (uint32_t enemy_id : enemies_to_destroy) {
-        destroy_enemy(enemy_id);
+        if (enemies.erase(enemy_id) > 0) {
+            INFO("Destroyed enemy: " + std::to_string(enemy_id));
+            EnemyDestroyPacket packet(enemy_id);
+            server->broadcast_packet(packet);
+        }
     }
 }
 
@@ -320,8 +354,15 @@ uint64_t ServerWorldManager::get_elapsed_gametime() const {
 }
 
 uint32_t ServerWorldManager::create_item_for_player(uint32_t player_id) {
-    Player* player = get_player(player_id);
-    if (!player) return 0;
+    std::lock_guard<std::recursive_mutex> lock(world_state_mutex);
+    return create_item_for_player_internal(player_id);
+}
+
+uint32_t ServerWorldManager::create_item_for_player_internal(uint32_t player_id) {
+    // NOTE: Must be called with world_state_mutex already held
+    auto it = players.find(player_id);
+    if (it == players.end()) return 0;
+    Player* player = &it->second;
     
     // Generate random item (use ItemGenerator)
     uint32_t item_id = next_item_id++;
@@ -347,8 +388,11 @@ uint32_t ServerWorldManager::create_item_for_player(uint32_t player_id) {
 }
 
 void ServerWorldManager::handle_item_discard(uint32_t player_id, uint32_t item_id) {
-    Player* player = get_player(player_id);
-    if (!player) return;
+    std::lock_guard<std::recursive_mutex> lock(world_state_mutex);
+    
+    auto it = players.find(player_id);
+    if (it == players.end()) return;
+    Player* player = &it->second;
     
     // Check if player has this item
     if (!player->inventory.has_item(item_id)) {
@@ -369,6 +413,8 @@ void ServerWorldManager::handle_item_discard(uint32_t player_id, uint32_t item_i
 }
 
 Item* ServerWorldManager::get_item(uint32_t item_id) {
+    std::lock_guard<std::recursive_mutex> lock(world_state_mutex);
+    
     auto it = items.find(item_id);
     return (it != items.end()) ? &it->second : nullptr;
 }

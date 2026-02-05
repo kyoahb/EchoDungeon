@@ -538,5 +538,29 @@
     <None Include="Docs\WorldSynchronization.md" />
     <None Include="Docs\WorldManagerArchitecture.md" />
     <None Include="Docs\InventoryItemSystemPlan.md" />
+    <None Include="Assets\models\cube.glb" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Assets\images\zombie.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Assets\images\armour.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Assets\images\goldskeleton.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Assets\images\goldzombie.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Assets\images\player.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Assets\images\skeleton.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Assets\images\sword.png">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>

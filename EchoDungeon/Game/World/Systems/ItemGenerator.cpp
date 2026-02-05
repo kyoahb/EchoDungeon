@@ -7,39 +7,39 @@
 std::mt19937 ItemGenerator::rng(std::chrono::steady_clock::now().time_since_epoch().count());
 
 // Healing
-const static int MIN_HEALING = -10;
+const static int MIN_HEALING = -8;
 const static int MAX_HEALING = 10;
-const static float MIN_HEALING_PERCENT = -0.4f;
-const static float MAX_HEALING_PERCENT = 0.4f;
+const static float MIN_HEALING_PERCENT = -0.2f;
+const static float MAX_HEALING_PERCENT = 0.3f;
 
 // Max Health
-const static int MIN_MAX_HEALTH_BOOST = -5;
-const static int MAX_MAX_HEALTH_BOOST = 5;
+const static int MIN_MAX_HEALTH_BOOST = -8;
+const static int MAX_MAX_HEALTH_BOOST = 10;
 const static float MIN_MAX_HEALTH_PERCENT_BOOST = -0.1f;
 const static float MAX_MAX_HEALTH_PERCENT_BOOST = 0.1f;
 
 // Damage
-const static int MIN_DAMAGE_BOOST = -2;
-const static int MAX_DAMAGE_BOOST = 2;
+const static int MIN_DAMAGE_BOOST = -3;
+const static int MAX_DAMAGE_BOOST = 4;
 const static float MIN_DAMAGE_PERCENT_BOOST = -0.2f;
 const static float MAX_DAMAGE_PERCENT_BOOST = 0.2f;
 
 // Speed
-const static float MIN_SPEED_BOOST = -1.0f;
+const static float MIN_SPEED_BOOST = -0.5f;
 const static float MAX_SPEED_BOOST = 1.0f;
-const static float MIN_SPEED_PERCENT_BOOST = -0.1f;
+const static float MIN_SPEED_PERCENT_BOOST = -0.08f;
 const static float MAX_SPEED_PERCENT_BOOST = 0.1f;
 
 // Range
-const static float MIN_RANGE_BOOST = -1.0f;
+const static float MIN_RANGE_BOOST = -0.5f;
 const static float MAX_RANGE_BOOST = 1.0f;
-const static float MIN_RANGE_PERCENT_BOOST = -0.1f;
+const static float MIN_RANGE_PERCENT_BOOST = -0.08f;
 const static float MAX_RANGE_PERCENT_BOOST = 0.1f;
 
 // Attack Cooldown
-const static int MIN_ATK_COOLDOWN_REDUCTION = -10;
-const static int MAX_ATK_COOLDOWN_REDUCTION = 10;
-const static float MIN_ATK_COOLDOWN_PERCENT_REDUCTION = -0.2;
+const static int MIN_ATK_COOLDOWN_REDUCTION = -80;
+const static int MAX_ATK_COOLDOWN_REDUCTION = 100;
+const static float MIN_ATK_COOLDOWN_PERCENT_REDUCTION = -0.1f;
 const static float MAX_ATK_COOLDOWN_PERCENT_REDUCTION = 0.2f;
 
 // Enum to represent all possible stats
