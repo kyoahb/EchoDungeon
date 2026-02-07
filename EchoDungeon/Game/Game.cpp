@@ -74,7 +74,7 @@ void Game::update() {
 	// Draw
 	BeginDrawing(); // Tell Raylib we are going to draw
 
-	window.ClearBackground(GRAY); // Clear previous frame by replacing with full white
+	window.ClearBackground(GRAY); // Clear previous frame 
 	rlImGuiBegin(); // Start Raylib-ImGUI frame
 
 	state_manager.update(); // Update the current game state

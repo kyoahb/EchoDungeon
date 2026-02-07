@@ -103,13 +103,17 @@ Player* ServerWorldManager::get_player(uint32_t peer_id) {
 }
 
 
-uint32_t ServerWorldManager::spawn_object(ObjectType type, const std::string& asset_id, const raylib::Vector3& position) {
+uint32_t ServerWorldManager::spawn_object(ObjectType type, const std::string& asset_id, const raylib::Vector3& position, 
+    const raylib::Vector3& rotation, const raylib::Vector3& scale, raylib::Color color = raylib::Color::White()) {
     std::lock_guard<std::recursive_mutex> lock(world_state_mutex);
     
     uint32_t object_id = next_object_id++;
     
     Object obj(object_id, asset_id, type);
     obj.transform.set_position(position);
+    obj.transform.set_rotation(rotation);
+    obj.transform.set_scale(scale);
+    obj.color = color;
     objects[object_id] = obj;
     
     // Broadcast object spawn to all clients with individual fields
@@ -117,7 +121,8 @@ uint32_t ServerWorldManager::spawn_object(ObjectType type, const std::string& as
         object_id,
         asset_id,
         type,
-        obj.transform
+        obj.transform,
+        obj.color
     );
     server->broadcast_packet(packet);
     

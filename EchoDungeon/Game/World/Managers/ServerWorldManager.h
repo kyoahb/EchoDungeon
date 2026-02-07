@@ -40,7 +40,8 @@ public:
     Player* get_player(uint32_t peer_id);
     const std::unordered_map<uint32_t, Player>& get_all_players() const { return players; }
     
-    uint32_t spawn_object(ObjectType type, const std::string& asset_id, const raylib::Vector3& position);
+    uint32_t spawn_object(ObjectType type, const std::string& asset_id, const raylib::Vector3& position,
+        const raylib::Vector3& rotation, const raylib::Vector3& scale, raylib::Color color);
     void destroy_object(uint32_t object_id);
     Object* get_object(uint32_t object_id);
     const std::unordered_map<uint32_t, Object>& get_all_objects() const { return objects; }

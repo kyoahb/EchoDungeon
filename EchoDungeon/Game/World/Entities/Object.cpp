@@ -15,7 +15,8 @@ void Object::Draw(const raylib::Camera3D& camera) const {
             transform.get_position(),
             rot.axis,
             rot.angle,
-            transform.get_scale()
+            transform.get_scale(),
+            color
         );
     }
     else if (type == ObjectType::IMAGE_MODEL) {
@@ -23,7 +24,8 @@ void Object::Draw(const raylib::Camera3D& camera) const {
             transform.get_position(),
             rot.axis,
             rot.angle,
-            transform.get_scale()
+            transform.get_scale(),
+            color
         );
     }
 }

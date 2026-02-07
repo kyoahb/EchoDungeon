@@ -19,6 +19,7 @@ public:
 	std::string asset_id = "";               // Asset reference
 	ObjectType object_type = ObjectType::MODEL;  // Type of object (MODEL or IMAGE_MODEL)
 	ObjectTransform transform;               // Transform (position, rotation, scale)
+	raylib::Color color = raylib::Color::White(); // Color tint (default white)
 
 	// Default constructor
 	ObjectSpawnPacket()
@@ -27,9 +28,9 @@ public:
 
 	// Constructor with data
 	ObjectSpawnPacket(uint32_t _id, const std::string& _asset_id,
-		ObjectType _object_type, const ObjectTransform& _transform)
+		ObjectType _object_type, const ObjectTransform& _transform, raylib::Color _color = raylib::Color::White())
 		: Packet(20, true), id(_id), asset_id(_asset_id),
-		object_type(_object_type), transform(_transform) {
+		object_type(_object_type), transform(_transform), color(_color) {
 	}
 
 	// Macros for serialization
@@ -39,7 +40,7 @@ public:
 	template<class Archive>
 	void serialize(Archive& archive) {
 		uint8_t type_value = static_cast<uint8_t>(object_type);
-		archive(header, is_reliable, id, asset_id, type_value, transform);
+		archive(header, is_reliable, id, asset_id, type_value, transform, color);
 		object_type = static_cast<ObjectType>(type_value);
 	}
 };

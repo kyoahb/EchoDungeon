@@ -6,6 +6,8 @@
 #include "./Vector4.hpp"
 #include "./raylib-cpp-utils.hpp"
 #include "./raylib.hpp"
+#include <cereal/archives/binary.hpp>
+#include <cereal/types/string.hpp>
 
 namespace raylib {
 /**
@@ -243,6 +245,11 @@ public:
     static Color Blank() { return BLANK; }
     static Color Magenta() { return MAGENTA; }
     static Color RayWhite() { return RAYWHITE; }
+
+    template<class Archive>
+    void serialize(Archive& archive) {
+        archive(r, g, b, a);
+	}
 protected:
     void set(const ::Color& color) {
         r = color.r;

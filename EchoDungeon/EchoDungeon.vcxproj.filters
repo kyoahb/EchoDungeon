@@ -153,6 +153,9 @@
     <ClCompile Include="Game\World\Systems\ItemGenerator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Game\World\Systems\LevelGenerator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Libraries\enet\enet.h">
@@ -533,6 +536,9 @@
     <ClInclude Include="Networking\Packet\Instances\Item\ItemPickup.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Game\World\Systems\LevelGenerator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Docs\WorldSynchronization.md" />
@@ -551,9 +557,6 @@
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="Assets\images\goldzombie.png">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="Assets\images\player.png">
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="Assets\images\skeleton.png">

@@ -31,14 +31,14 @@ ClientWorldManager* client_world_manager) {
 		// Create and cache bounding box for this object
 		object_boxes[object_id] = raylib::BoundingBox(
 			raylib::Vector3(
-				object_pos.x - object_scale.x * 0.5f,
-				object_pos.y - object_scale.y * 0.5f,
-				object_pos.z - object_scale.z * 0.5f
+				object_pos.x - object_scale.x,
+				object_pos.y - object_scale.y,
+				object_pos.z - object_scale.z
 			),
 			raylib::Vector3(
-				object_pos.x + object_scale.x * 0.5f,
-				object_pos.y + object_scale.y * 0.5f,
-				object_pos.z + object_scale.z * 0.5f
+				object_pos.x + object_scale.x,
+				object_pos.y + object_scale.y,
+				object_pos.z + object_scale.z
 			)
 		);
 	}

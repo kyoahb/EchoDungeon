@@ -20,6 +20,7 @@ public:
    ObjectTransform transform;
    uint32_t id;  // Unique object ID
    std::string asset_id;  // Asset reference ID
+   raylib::Color color = raylib::Color::White(); // Default color tint
 
    // Get the type
    ObjectType GetType() const { return type; }
@@ -29,13 +30,13 @@ public:
    template <typename Archive>
    void save(Archive& archive) const {
        uint8_t type_value = static_cast<uint8_t>(type);
-       archive(id, asset_id, type_value, transform);
+       archive(id, asset_id, type_value, transform, color);
    }
 
    template <typename Archive>
    void load(Archive& archive) {
        uint8_t type_value;
-       archive(id, asset_id, type_value, transform);
+       archive(id, asset_id, type_value, transform, color);
        type = static_cast<ObjectType>(type_value);
    }
 

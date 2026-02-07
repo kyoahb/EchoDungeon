@@ -14,7 +14,7 @@ ClientWorldManager::ClientWorldManager(std::shared_ptr<Client> client)
     camera.position = {0.0f, 10.0f, 10.0f};
     camera.target = {0.0f, 0.0f, 0.0f};
     camera.up = {0.0f, 0.0f, -1.0f};
-    camera.fovy = 70.0f;
+    camera.fovy = 70.0f; // 70.0f
     camera.projection = CAMERA_PERSPECTIVE;
 }
 
@@ -598,7 +598,7 @@ void ClientWorldManager::draw_inventory_ui() {
             }
             if (e.atk_cooldown_reduction != 0) {
                 StatEntry s; s.label = "Attack Speed"; 
-                snprintf(s.value, sizeof(s.value), "%+ds", e.atk_cooldown_reduction);
+                snprintf(s.value, sizeof(s.value), "%+dms", e.atk_cooldown_reduction);
                 stats.push_back(s);
             }
             if (e.atk_cooldown_percent_reduction != 0) {

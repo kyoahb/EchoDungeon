@@ -3,6 +3,7 @@
 #include "Utils/Input.h"
 #include "Game/Events/EventList.h"
 #include "Networking/Packet/Instances/RequestWorldSnapshot.h"
+#include "Game/World/Systems/LevelGenerator.h"
 
 World::World(Game& game) : GameState(game) {
 	// Player is created in on_activate when client is available
@@ -28,11 +29,7 @@ void World::on_activate() {
 			s_world_manager->add_player(peer_entry.data.server_side_id, peer_entry.data.username);
 		}
 
-		s_world_manager->spawn_object(
-			ObjectType::MODEL,
-			"cube",
-			raylib::Vector3{ 1.0f, 1.0f, 1.0f }
-		);
+		LevelGenerator::generate_level(*s_world_manager);
 
 		// Broadcast initial world snapshot to all clients
 		s_world_manager->broadcast_world_snapshot();
@@ -190,6 +187,8 @@ void World::update() {
 		ImGui::End();
 	}
 	
+	game.window.ClearBackground({87, 184, 87, 200});
+
 	// Update ClientWorldManager
 	// This updates input, camera, sends input packets 
 	c_world_manager->update(GetFrameTime());
@@ -197,7 +196,6 @@ void World::update() {
 
 	c_world_manager->get_camera().BeginMode();
 	// Do all 3D Rendering
-	DrawGrid(100, 1.0f);
 	
 	c_world_manager->draw_3d();
 
@@ -210,15 +208,6 @@ void World::update() {
 
 	// DEBUG: Draw hud info
 	DrawFPS(10, 0);
-
-	const std::vector<int>& keys = Input::get_keys_down();
-	std::string keysText = "Pressed keys: ";
-	for (int key : keys) {
-		keysText += Input::get_key_name(key) + ", ";
-	}
-	DrawText(keysText.c_str(), 10, 80, 20, BLACK);
-
-	// End 2D Rendering
 }
 
 void World::setup_client_events() {
@@ -277,6 +266,7 @@ void World::setup_client_events() {
 			if (c_world_manager) {
 				Object o = Object(data.packet.id, data.packet.asset_id, data.packet.object_type);
 				o.transform = data.packet.transform;
+				o.color = data.packet.color;
 
 				c_world_manager->add_object(o);
 				TRACE("Spawned object: ID=" + std::to_string(o.id));
