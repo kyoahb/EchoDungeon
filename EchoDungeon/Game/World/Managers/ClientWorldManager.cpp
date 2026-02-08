@@ -8,7 +8,8 @@
 #include "Libraries/raylib-imgui-compat/rlImGui.h"
 
 ClientWorldManager::ClientWorldManager(std::shared_ptr<Client> client)
-    : client(client), last_input_send_time(std::chrono::steady_clock::now()) {
+    : client(client), last_input_send_time(std::chrono::steady_clock::now()),
+    game_start_time(std::chrono::steady_clock::now()) {
     
     // Initialize camera
     camera.position = {0.0f, 10.0f, 10.0f};
@@ -96,6 +97,30 @@ void ClientWorldManager::draw_3d() {
 
 void ClientWorldManager::draw_2d() {
     std::lock_guard<std::recursive_mutex> lock(world_state_mutex);
+
+    // Draw game time counter
+	uint64_t elapsed_time_ms = NetUtils::get_current_time_millis() - 
+        std::chrono::duration_cast<std::chrono::milliseconds>(game_start_time.time_since_epoch()).count();
+	int seconds = (elapsed_time_ms / 1000) % 60;
+	int minutes = (elapsed_time_ms / (1000 * 60)) % 60;
+	int hours = (elapsed_time_ms / (1000 * 60 * 60));
+	
+	// Format time with padding
+	char time_buffer[16];
+	snprintf(time_buffer, sizeof(time_buffer), "%02d:%02d:%02d", hours, minutes, seconds);
+	std::string time_text = time_buffer;
+	
+	float font_size = 40.0f;
+	auto text = raylib::Text(time_text, font_size, BLUE);
+	text.spacing = 3.0f;
+	
+	// Centre the text horizontally
+	int screen_width = GetScreenWidth();
+	int text_width = MeasureText(time_text.c_str(), font_size);
+	int x_pos = (screen_width - text_width) / 2;
+
+	text.Draw(x_pos, 10);
+
     
     // Draw player UI elements (names, health bars)
     for (auto& [peer_id, player] : players) {

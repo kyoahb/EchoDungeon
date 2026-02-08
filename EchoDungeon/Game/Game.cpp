@@ -7,6 +7,7 @@
 #include "Game/State/Instances/World.h"
 #include "Networking/Packet/PacketRegistry.h"
 #include "Utils/Input.h"
+#include "Utils/SettingsFile.h"
 
 Game::Game() : state_manager(GameStateManager()){
 
@@ -21,8 +22,8 @@ Game::Game() : state_manager(GameStateManager()){
 
 
 	// Setup raylib window
-	const int screenWidth = 1280;
-	const int screenHeight = 720;
+	const int screenWidth = 960;
+	const int screenHeight = 540;
 
 	window = raylib::Window(screenWidth, screenHeight, "Echo Dungeon");
 	rlImGuiSetup(true); // Setup Raylib ImGUI connection
@@ -30,6 +31,9 @@ Game::Game() : state_manager(GameStateManager()){
 	// Load all models pre-emptively
 	AssetMap::load();
 
+	// Load settings
+	settings = SettingsFile::load_settings();
+	window.SetTargetFPS(settings.max_fps); // Set max FPS from settings
 
 	// Set default font to Arial, size 24
 	ImGuiIO& io = ImGui::GetIO();

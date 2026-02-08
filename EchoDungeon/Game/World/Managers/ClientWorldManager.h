@@ -83,6 +83,9 @@ private:
     // Inventory UI
     bool show_inventory = false;
     
+    // Time when game began
+    std::chrono::steady_clock::time_point game_start_time;
+
     // Input tracking
     std::chrono::steady_clock::time_point last_input_send_time;
     const float input_send_interval = 1.0f / 60.0f;  // Send input 60 times per second

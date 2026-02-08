@@ -19,6 +19,7 @@ void Join::on_deactivate() {
 }
 
 void Join::update() {
+	static std::string errors = "";
 	// Check connection status if we're connecting
 	if (connection_status == ConnectionStatus::CONNECTING && connection_future) {
 		// Check if the future is ready
@@ -114,8 +115,38 @@ void Join::update() {
 		if (should_block) {
 			ImGui::BeginDisabled();
 		}
-		
+
+		if (!errors.empty()) {
+			// Show error popup
+			UIUtils::CentreText(errors);
+		}
+
 		if (ImGui::Button("Join", button_size)) {
+			// Validation
+
+			auto is_valid_ip = [](const std::string& ip) {
+				int parts[4];
+				// Break ip up into 4 parts
+				int matched = sscanf_s(ip.c_str(), "%d.%d.%d.%d", &parts[0], &parts[1], &parts[2], &parts[3]);
+				if (matched != 4) return false;
+				for (int i = 0; i < 4; i++) {
+					// Validate each part
+					if (parts[i] < 0 || parts[i] > 255) return false;
+				}
+				return true;
+			};
+
+			if (!is_valid_ip(ip_address)) {
+				errors = "Invalid IP address format. Use X.X.X.X (0-255).\n";
+				return;
+			}
+			if (port < 1 || port > 65535) {
+				errors = "Port number must be between 1 and 65535.\n";
+				return;
+			}
+
+			errors.clear(); // Clear errors on successful validation
+			
 			TRACE("Join button pressed with IP: " + ip_address + " Port: " + std::to_string(port));
 			
 			// Reset error message

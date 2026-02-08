@@ -171,6 +171,7 @@
     <ClCompile Include="Networking\Server\ServerPeerlist.cpp" />
     <ClCompile Include="Utils\Input.cpp" />
     <ClCompile Include="Utils\Logger\Logger.cpp" />
+    <ClCompile Include="Utils\SettingsFile.cpp" />
     <ClCompile Include="Utils\UI.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -300,6 +301,7 @@
     <ClInclude Include="Utils\Logger\Logger.h" />
     <ClInclude Include="Utils\MathUtils.h" />
     <ClInclude Include="Utils\NetUtils.h" />
+    <ClInclude Include="Utils\SettingsFile.h" />
     <ClInclude Include="Utils\UI.h" />
   </ItemGroup>
   <ItemGroup>

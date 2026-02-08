@@ -18,6 +18,8 @@ void Host::on_deactivate() {
 }
 
 void Host::update() {
+	static std::string errors = ""; // Persistent error message across frames
+
 	UIUtils::FullscreenWindow([this]() {
 		// Center and enlarge buttons
 		ImVec2 button_size(200, 50);
@@ -55,8 +57,26 @@ void Host::update() {
 
 		UIUtils::YSpacing(30);
 
+		if (!errors.empty()) {
+			// Show error popup
+			UIUtils::CentreText(errors);
+		}
+
 		UIUtils::CentrePosition(button_size);
 		if (ImGui::Button("Host", button_size)) {
+
+			// Validation
+			if (lobby_name.empty()) {
+				errors = "Lobby name cannot be empty.\n";
+				return;
+			}
+			if (max_players < 1) {
+				errors = "Max players must be greater than 0.\n";
+				return;
+			}
+			errors.clear();
+
+
 			TRACE("Host button pressed with Lobby Name: " + lobby_name + " Max Players: " + std::to_string(max_players));
 			// Create server
 			game.server = std::make_shared<Server>("0.0.0.0", NetworkConstants::DEFAULT_PORT);

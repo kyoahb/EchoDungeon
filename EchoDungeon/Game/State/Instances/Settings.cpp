@@ -3,6 +3,8 @@
 #include "Utils/UI.h"
 #include <string>
 
+#include "Utils/SettingsFile.h"
+
 Settings::Settings(Game& game) : GameState(game) {
 	// Constructor
 }
@@ -18,6 +20,7 @@ void Settings::on_deactivate() {
 }
 
 void Settings::update() {
+	static std::string errors = ""; 
 	UIUtils::FullscreenWindow([this]() {
 		// Center and enlarge buttons
 		ImVec2 button_size(200, 50);
@@ -63,15 +66,40 @@ void Settings::update() {
 
 		UIUtils::YSpacing(30);
 
+		if (!errors.empty()) {
+			// Show error popup
+			UIUtils::CentreText(errors);
+		}
+
 		// Save button
 		UIUtils::CentrePosition(button_size);
 		if (ImGui::Button("Save", button_size)) {
+			// Validation
+			
+			if (settings_buffer.username.empty()) {
+				errors = "Username cannot be empty.\n";
+				return;
+			}
+			if (settings_buffer.max_fps < 1) {
+				errors = "Max FPS must be greater than 0.\n";
+				return;
+			}
+			if (settings_buffer.volume < 0 || settings_buffer.volume > 100) {
+				errors = "Volume must be between 0 and 100.\n";
+				return;
+			}
+			errors.clear();
+
 			TRACE("Settings saved: Volume=" + std::to_string(settings_buffer.volume) +
 				  " MaxFPS=" + std::to_string(settings_buffer.max_fps) +
 				  " Username=" + settings_buffer.username);
 
 			// Apply settings
 			game.settings = settings_buffer;
+			game.window.SetTargetFPS(settings_buffer.max_fps); // Set max FPS from settings
+
+			// Save settings
+			SettingsFile::save_settings(game.settings);
 		}
 
 	});

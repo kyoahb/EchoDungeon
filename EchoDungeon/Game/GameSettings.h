@@ -5,4 +5,9 @@ struct GameSettings {
 	int volume = 50;				 // Volume level (0-100)
 	int max_fps = 120;				 // Maximum frames per second
 	std::string username = "Player"; // Player's username
+
+	template<class Archive>
+	void serialize(Archive& archive) {
+		archive(volume, max_fps, username);
+	}
 };
